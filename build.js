@@ -1,13 +1,6 @@
-﻿var bootstrapNativeBuild = require(__dirname + '/src/plugin/bootstrap.native/build');
-var jsonEditorBuild = require(__dirname + '/src/plugin/json-editor/build');
-var swaggerJsBuild = require(__dirname + '/src/plugin/swagger-js/build');
-var ez = require('gulp-build-shortcuts');
+﻿var ez = require('gulp-build-shortcuts');
 
 module.exports = function (rootDir, outDir) {
-    swaggerJsBuild(rootDir + '/node_modules/swagger-client/');
-    jsonEditorBuild(rootDir + '/node_modules/json-editor/');
-    bootstrapNativeBuild(rootDir + "/node_modules/bootstrap.native/lib/");
-
     ez.minifyConcat({
         libs: [
             "./custom_components/HtmlRapierWidgets/src/data/**/*.js",
@@ -18,7 +11,7 @@ module.exports = function (rootDir, outDir) {
             "!**/*.intellisense.js"
         ],
         output: "HtmlRapierWidgets",
-        dest: outDir + "/HtmlRapier/",
+        dest: outDir,
         sourceRoot: __dirname + "/custom_components/HtmlRapierWidgets/src/"
     });
 }
