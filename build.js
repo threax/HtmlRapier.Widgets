@@ -8,6 +8,6 @@ module.exports = function (rootDir, outDir) {
         ],
         output: "HtmlRapierWidgets",
         dest: outDir,
-        sourceRoot: __dirname + "/custom_components/HtmlRapierWidgets/src/"
+        sourceRoot: __dirname + "/src/"
     });
 }
