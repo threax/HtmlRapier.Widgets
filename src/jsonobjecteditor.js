@@ -98,6 +98,13 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
             main.on();
         }
 
+        context.clearError = function () {
+            currentError = null;
+            formEditor.onChange();
+            formToggles.activate(main);
+            errorModel.clear();
+        }
+
         context.show = function () {
             dialog.on();
         }
@@ -117,16 +124,9 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
 
                 if (currentError['errors'] !== undefined) {
                     //walk path to error
-                    var pathParts = path.split('.');
-                    var errorObject = currentError.errors;
-                    for (var i = 1; i < pathParts.length; ++i) { //Skip the root entry
-                        errorObject = errorObject[pathParts[i]];
-                        if (errorObject === undefined) {
-                            break;
-                        }
-                    }
-
-                    if (errorObject !== undefined && errorObject !== currentError.errors) {
+                    var shortPath = errorPath(path);
+                    var errorObject = currentError.errors[shortPath];
+                    if (errorObject !== undefined) {
                         return {
                             path: path,
                             message: errorObject
@@ -135,6 +135,10 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
                 }
             }
             return defaultError;
+        }
+
+        function errorPath(path) {
+            return path.replace('root.', '');
         }
     }
 

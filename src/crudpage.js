@@ -59,6 +59,7 @@ function (exports, module, controller, JsonObjectEditor, EditableItemsList, Edit
         function edit(data, persistFunc) {
             editorContext.showLoad();
             editorContext.show();
+            editorContext.clearError();
             return Promise.resolve(data)
             .then(function (data) {
                 editorContext.showMain();
