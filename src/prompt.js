@@ -14,7 +14,7 @@ function (exports, module) {
                     resovle(true);
                 }
                 else {
-                    resolve(false);
+                    resovle(false);
                 }
             });
         }
