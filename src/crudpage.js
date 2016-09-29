@@ -2,9 +2,9 @@
     "hr.controller",
     "hr.widgets.jsonobjecteditor",
     "hr.widgets.editableitemslist",
-    "hr.widgets.editdeleteitem"
+    "hr.widgets.editableitem"
 ],
-function (exports, module, controller, JsonObjectEditor, EditableItemsList, EditDeleteItem) {
+function (exports, module, controller, JsonObjectEditor, EditableItemsList, EditableItem) {
     "use strict"
 
     /**
@@ -15,7 +15,7 @@ function (exports, module, controller, JsonObjectEditor, EditableItemsList, Edit
      */
     function CrudPage(settings) {
         var listingContext = {
-            itemControllerConstructor: EditDeleteItem,
+            itemControllerConstructor: EditableItem,
             itemControllerContext: {
                 edit: function (item) {
                     return edit(item, settings.update);
