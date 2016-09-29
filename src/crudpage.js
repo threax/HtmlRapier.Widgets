@@ -14,14 +14,20 @@ function (exports, module, controller, JsonObjectEditor, EditableItemsList, Edit
      * @param {type} settings
      */
     function CrudPage(settings) {
+        var listingActions = settings['listingActions'];
+        if (listingActions === undefined) {
+            listingActions = {};
+        }
+
+        listingActions.edit = function (item) {
+            return edit(item, settings.update);
+        };
+
+        listingActions.del = deleteItem;
+
         var listingContext = {
             itemControllerConstructor: EditableItem,
-            itemControllerContext: {
-                edit: function (item) {
-                    return edit(item, settings.update);
-                },
-                del: deleteItem
-            },
+            itemControllerContext: listingActions,
             getData: settings.list,
             add: function () {
                 return edit(null, settings.create);
