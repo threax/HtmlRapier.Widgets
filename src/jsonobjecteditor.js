@@ -28,38 +28,10 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
             disable_collapse: true,
             show_errors: "always",
             custom_validators: [
-                function (schema, value, path) {
-                    if (currentError !== null) {
-                        if (path === "root") {
-                            return {
-                                path: path,
-                                message: currentError.message
-                            }
-                        }
-
-                        if (currentError['errors'] !== undefined) {
-                            //walk path to error
-                            var pathParts = path.split('.');
-                            var errorObject = currentError.errors;
-                            for (var i = 1; i < pathParts.length; ++i) { //Skip the root entry
-                                errorObject = errorObject[pathParts[i]];
-                                if (errorObject === undefined) {
-                                    break;
-                                }
-                            }
-
-                            if (errorObject !== undefined && errorObject !== currentError.errors) {
-                                return {
-                                    path: path,
-                                    message: errorObject
-                                };
-                            }
-                        }
-                    }
-                    return defaultError;
-                }
+                showCurrentErrorValidator
             ]
         });
+        var formEditor = formModel.getEditor();
 
         var dialog = bindings.getToggle('dialog');
         dialog.offEvent.add(this, closed);
@@ -122,7 +94,7 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
             errorModel.setData(errorMessage);
             formToggles.activate(error);
             currentError = err;
-            formModel.getEditor().onChange();
+            formEditor.onChange();
             main.on();
         }
 
@@ -132,6 +104,37 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
 
         context.close = function () {
             dialog.off();
+        }
+
+        function showCurrentErrorValidator(schema, value, path) {
+            if (currentError !== null) {
+                if (path === "root") {
+                    return {
+                        path: path,
+                        message: currentError.message
+                    }
+                }
+
+                if (currentError['errors'] !== undefined) {
+                    //walk path to error
+                    var pathParts = path.split('.');
+                    var errorObject = currentError.errors;
+                    for (var i = 1; i < pathParts.length; ++i) { //Skip the root entry
+                        errorObject = errorObject[pathParts[i]];
+                        if (errorObject === undefined) {
+                            break;
+                        }
+                    }
+
+                    if (errorObject !== undefined && errorObject !== currentError.errors) {
+                        return {
+                            path: path,
+                            message: errorObject
+                        };
+                    }
+                }
+            }
+            return defaultError;
         }
     }
 
