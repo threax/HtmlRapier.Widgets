@@ -2,9 +2,10 @@
     "hr.controller",
     "hr.widgets.jsonobjecteditor",
     "hr.widgets.editableitemslist",
-    "hr.widgets.editableitem"
+    "hr.widgets.editableitem",
+    "hr.widgets.prompt"
 ],
-function (exports, module, controller, JsonObjectEditor, EditableItemsList, EditableItem) {
+function (exports, module, controller, JsonObjectEditor, EditableItemsList, EditableItem, prompt) {
     "use strict"
 
     /**
@@ -24,6 +25,11 @@ function (exports, module, controller, JsonObjectEditor, EditableItemsList, Edit
         };
 
         listingActions.del = deleteItem;
+
+        var deletePrompt = settings['deletePrompt'];
+        if (deletePrompt === undefined) {
+            deletePrompt = new prompt.BrowserPrompt();
+        }
 
         var listingContext = {
             itemControllerConstructor: EditableItem,
@@ -55,10 +61,15 @@ function (exports, module, controller, JsonObjectEditor, EditableItemsList, Edit
         this.refreshData = refreshData;
 
         function deleteItem(item) {
-            listingContext.showLoad();
-            return settings.del(item)
-            .then(function (data) {
-                return refreshData();
+            return deletePrompt.prompt("Delete " + item.name + " ?")
+            .then(function (result) {
+                if (result) {
+                    listingContext.showLoad();
+                    return settings.del(item)
+                    .then(function (data) {
+                        return refreshData();
+                    });
+                }
             });
         }
 
