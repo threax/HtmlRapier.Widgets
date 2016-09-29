@@ -32,6 +32,7 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
             ]
         });
         var formEditor = formModel.getEditor();
+        var fieldWatcher = new FieldWatcher(formEditor);
 
         var dialog = bindings.getToggle('dialog');
         dialog.offEvent.add(this, closed);
@@ -99,6 +100,7 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
         }
 
         context.clearError = function () {
+            fieldWatcher.clear();
             currentError = null;
             formEditor.onChange();
             formToggles.activate(main);
@@ -127,6 +129,8 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
                     var shortPath = errorPath(path);
                     var errorObject = currentError.errors[shortPath];
                     if (errorObject !== undefined) {
+                        //Listen for changes on field
+                        fieldWatcher.watch(path, shortPath, currentError);
                         return {
                             path: path,
                             message: errorObject
@@ -140,6 +144,44 @@ function (exports, module, toggles, jsonEditor, promiseUtils) {
         function errorPath(path) {
             return path.replace('root.', '');
         }
+    }
+
+    function FieldWatcher(formEditor) {
+        var watchers = {};
+
+        function watch(path, errorObjectPath, currentError) {
+            if (watchers[path] !== undefined) {
+                watchers[path].clear();
+            }
+            
+            watchers[path] = new Watcher(formEditor, path, errorObjectPath, currentError);
+        }
+        this.watch = watch;
+
+        function clear() {
+            for (var key in watchers) {
+                watchers[key].clear();
+                delete watchers[key];
+            }
+        }
+        this.clear = clear;
+    }
+
+    function Watcher(formEditor, path, errorObjectPath, currentError) {
+        function handler() {
+            if (currentError.errors.hasOwnProperty(errorObjectPath)) {
+                delete currentError.errors[errorObjectPath];
+            }
+            //Not a huge fan of this, but needed to be able to unwatch during a watch callback
+            window.setTimeout(clear, 1);
+        };
+
+        function clear() {
+            formEditor.unwatch(path, handler);
+        }
+        this.clear = clear;
+
+        formEditor.watch(path, handler);
     }
 
     module.exports = JsonObjectEditor;
