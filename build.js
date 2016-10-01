@@ -1,15 +1,16 @@
-﻿var compileJavascript = require('threax-gulp-tk/javascript.js');
+﻿var compileTypescript = require('threax-gulp-tk/typescript.js');
 
 module.exports = function (rootDir, outDir) {
-    compileJavascript({
+    return compileTypescript({
         libs: [
-            __dirname + "/src/**/*.js",
-            "!**/*.intellisense.js"
+            __dirname + "/src/**/*.ts",
+        ],
+        runners: [
+            
         ],
         output: "HtmlRapierWidgets",
         dest: outDir,
         sourceRoot: __dirname + "/src/",
-        minify: true,
         concat: true
     });
 }

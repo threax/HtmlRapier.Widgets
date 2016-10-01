@@ -1,10 +1,8 @@
 ﻿"use strict";
 
-jsns.define("hr.widgets.navmenu", [
-    "hr.eventhandler",
-    "hr.controller"
-],
-function (exports, module, EventHandler, controller) {
+import * as controller from 'hr.controller';
+import { EventHandler } from 'hr.eventhandler';
+
     var navMenus = {};
 
     function NavMenu() {
@@ -13,7 +11,7 @@ function (exports, module, EventHandler, controller) {
         var itemAdded = new EventHandler();
         this.itemAdded = itemAdded.modifier;
 
-        function add(name, controllerConstructor) {
+        function add(name, controllerConstructor:any) {
             if (controllerConstructor !== undefined) {
                 controllerConstructor = controller.createOnCallback(controllerConstructor);
             }
@@ -32,12 +30,10 @@ function (exports, module, EventHandler, controller) {
         this.getItems = getItems;
     }
 
-    function getNavMenu(name) {
+    export function getNavMenu(name) {
         var menu = navMenus[name];
         if (menu === undefined) {
             navMenus[name] = menu = new NavMenu();
         }
         return menu;
     }
-    exports.getNavMenu = getNavMenu;
-});
