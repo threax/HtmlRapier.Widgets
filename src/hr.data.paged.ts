@@ -1,4 +1,6 @@
-﻿import * as http from 'hr.http';
+﻿"use strict";
+
+import * as http from 'hr.http';
 import { EventHandler } from 'hr.eventhandler';
 
 export function PagedData(src, resultsPerPage) {
