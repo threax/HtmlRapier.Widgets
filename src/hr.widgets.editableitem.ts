@@ -3,7 +3,7 @@
 import * as controller from 'hr.controller';
 import * as typeId from 'hr.typeidentifiers';
 
-export function EditDeleteItemController(bindings, context, data) {
+export function EditableItem(bindings, context, data) {
     var self = this;
 
     for (var key in context) {
