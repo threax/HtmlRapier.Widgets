@@ -3,7 +3,7 @@
 import * as controller from 'hr.controller';
 import { JsonObjectEditor } from 'hr.widgets.jsonobjecteditor';
 import { EditableItemsListController } from 'hr.widgets.editableitemslist';
-import * as EditableItem from 'hr.widgets.editableitem';
+import { EditableItem } from 'hr.widgets.editableitem';
 import * as prompt from 'hr.widgets.prompt';
 
 /**
