@@ -1,10 +1,10 @@
 ﻿"use strict";
 
 import * as controller from 'hr.controller';
-import * as JsonObjectEditor from 'hr.jsonobjecteditor';
-import * as EditableItemsList from 'hr.editableitemslist';
-import * as EditableItem from 'hr.editableitem';
-import * as prompt from 'hr.prompt';
+import { JsonObjectEditor } from 'hr.widgets.jsonobjecteditor';
+import { EditableItemsListController } from 'hr.widgets.editableitemslist';
+import * as EditableItem from 'hr.widgets.editableitem';
+import * as prompt from 'hr.widgets.prompt';
 
 /**
  * This is a shortcut to create a page to create, read, update and delete a type of
@@ -29,7 +29,7 @@ export function CrudPage(settings) {
         deletePrompt = new prompt.BrowserPrompt();
     }
 
-    var listingContext = {
+    var listingContext:any = {
         itemControllerConstructor: EditableItem,
         itemControllerContext: listingActions,
         getData: settings.list,
@@ -37,9 +37,9 @@ export function CrudPage(settings) {
             return edit(null, settings.create);
         }
     };
-    controller.create(settings.listController, EditableItemsList, listingContext);
+    controller.create(settings.listController, EditableItemsListController, listingContext);
 
-    var editorContext = {
+    var editorContext: any = {
         schema: settings.schema,
     };
     controller.create(settings.itemEditorController, JsonObjectEditor, editorContext);

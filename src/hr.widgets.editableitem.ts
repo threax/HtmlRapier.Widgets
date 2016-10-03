@@ -1,24 +1,19 @@
-﻿jsns.define("hr.widgets.editableitem", [
-    "hr.controller",
-    "hr.typeidentifiers",
-],
-function (exports, module, controller, typeId) {
-    "use strict"
+﻿"use strict";
 
-    function EditDeleteItemController(bindings, context, data) {
-        var self = this;
+import * as controller from 'hr.controller';
+import * as typeId from 'hr.typeidentifiers';
 
-        for (var key in context) {
-            if (typeId.isFunction(context[key])) {
-                self[key] = (function (evtName) {
-                    return function (evt) {
-                        evt.preventDefault();
-                        context[evtName](data);
-                    }
-                })(key);
-            }
+export function EditDeleteItemController(bindings, context, data) {
+    var self = this;
+
+    for (var key in context) {
+        if (typeId.isFunction(context[key])) {
+            self[key] = (function (evtName) {
+                return function (evt) {
+                    evt.preventDefault();
+                    context[evtName](data);
+                }
+            })(key);
         }
     }
-
-    module.exports = EditDeleteItemController;
-});
+}

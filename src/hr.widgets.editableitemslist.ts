@@ -1,54 +1,50 @@
-﻿jsns.define("hr.widgets.editableitemslist", [
-    "hr.controller",
-    "hr.toggles"
-],
-function (exports, module, controller, toggles) {
-    "use strict"
+﻿"use strict";
 
-    /**
-     * This controller will bind data loaded to a model called 'listing'.
-     * It also defines an add function that can be called as an hr event.
-     */
-    function EditableItemsListController(bindings, context) {
-        var listing = bindings.getModel('listing');
+import * as controller from 'hr.controller';
+import * as toggles from 'hr.toggles';
 
-        var load = bindings.getToggle('load');
-        var main = bindings.getToggle('main');
-        var error = bindings.getToggle('error');
-        var formToggles = new toggles.Group(load, main, error);
-        formToggles.activate(main);
+/**
+ * This controller will bind data loaded to a model called 'listing'.
+ * It also defines an add function that can be called as an hr event.
+ */
+export function EditableItemsListController(bindings, context) {
+    var listing = bindings.getModel('listing');
 
-        function setData(data) {
-            var creator = undefined;
-            if (context.itemControllerConstructor !== undefined) {
-                creator = controller.createOnCallback(context.itemControllerConstructor, context.itemControllerContext);
-            }
+    var load = bindings.getToggle('load');
+    var main = bindings.getToggle('main');
+    var error = bindings.getToggle('error');
+    var formToggles = new toggles.Group(load, main, error);
+    formToggles.activate(main);
 
-            listing.setData(data, creator);
-        }
-        this.setData = setData;
-        context.setData = setData;
-
-        if (context.add !== undefined) {
-            function add(evt) {
-                evt.preventDefault();
-                return context.add();
-            }
-            this.add = add;
+    function setData(data) {
+        var creator = undefined;
+        if (context.itemControllerConstructor !== undefined) {
+            creator = controller.createOnCallback(context.itemControllerConstructor, context.itemControllerContext);
         }
 
-        context.showLoad = function () {
-            formToggles.activate(load);
-        };
+        listing.setData(data, creator);
+    }
+    this.setData = setData;
+    context.setData = setData;
 
-        context.showMain = function () {
-            formToggles.activate(main);
-        }
+    function add(evt) {
+        evt.preventDefault();
+        return context.add();
+    }
 
-        context.showError = function () {
-            formToggles.activate(error);
-        }
+    if (context.add !== undefined) {
+        this.add = add;
+    }
+
+    context.showLoad = function () {
+        formToggles.activate(load);
     };
 
-    module.exports = EditableItemsListController;
-});
+    context.showMain = function () {
+        formToggles.activate(main);
+    }
+
+    context.showError = function () {
+        formToggles.activate(error);
+    }
+};
