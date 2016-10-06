@@ -1,0 +1,12 @@
+{
+  "name": "htmlrapier.widgets",
+  "version": "1.0.0",
+  "private": false,
+  "dependencies": {
+
+  },
+  "devDependencies": {
+    "gulp-build-shortcuts": "threax/gulp-build-shortcuts",
+    "jsns": "^1.0.0"
+  }
+}
