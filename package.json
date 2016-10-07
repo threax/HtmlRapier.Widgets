@@ -6,7 +6,7 @@
 
   },
   "devDependencies": {
-    "gulp-build-shortcuts": "threax/gulp-build-shortcuts",
+    "threax-gulp-tk": "^1.3.0",
     "jsns": "^1.0.0"
   }
 }
