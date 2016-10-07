@@ -1,6 +1,20 @@
 ﻿var compileTypescript = require('threax-gulp-tk/typescript.js');
 
-module.exports = function (rootDir, outDir) {
+module.exports = function (rootDir, outDir, settings) {
+    if(settings === undefined){
+        settings = {};
+    }
+
+    var concat = true;
+    if(settings.concat !== undefined){
+        concat = settings.concat;
+    }
+
+    var minify = true;
+    if(settings.minify !== undefined){
+        minify = settings.minify;
+    }
+
     return compileTypescript({
         libs: [
             __dirname + "/src/**/*.ts",
@@ -11,6 +25,8 @@ module.exports = function (rootDir, outDir) {
         output: "HtmlRapierWidgets",
         dest: outDir,
         sourceRoot: __dirname + "/src/",
-        concat: true
+        namespace: "hr.widgets",
+        concat: concat,
+        minify: minify
     });
 }
