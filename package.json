@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "private": false,
   "dependencies": {
-
+    "htmlrapier": "^1.2.1",
+    "htmlrapier.bootstrap": "^1.0.1",
+    "htmlrapier.json-editor": "^1.0.4",
+    "htmlrapier.swagger-js": "^1.0.1"
   },
   "devDependencies": {
-    "threax-gulp-tk": "^1.3.0",
+    "threax-gulp-tk": "^1.2.2",
     "jsns": "^1.0.0"
   }
 }
