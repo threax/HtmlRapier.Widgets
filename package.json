@@ -1,9 +1,9 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": false,
   "dependencies": {
-    "htmlrapier": "^1.2.1",
+    "htmlrapier": "^1.2.2",
     "htmlrapier.bootstrap": "^1.0.1",
     "htmlrapier.json-editor": "^1.0.4",
     "htmlrapier.swagger-js": "^1.0.1"
