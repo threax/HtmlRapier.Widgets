@@ -1,7 +1,7 @@
 ﻿"use strict";
 
 import * as toggles from 'hr.toggles';
-import * as jsonEditor from 'hr.widgets.jdorn.json-editor';
+import * as jsonEditor from 'hr.widgets.json-editor-plugin';
 import { ExternalPromise } from 'hr.promiseutils';
 
 var defaultError = { path: null };
