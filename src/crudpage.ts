@@ -18,6 +18,11 @@ export function CrudPage(settings) {
         listingActions = {};
     }
 
+    var pageActions = settings['pageActions'];
+    if (pageActions === undefined) {
+        pageActions = {};
+    }
+
     listingActions.edit = function (item) {
         return edit(item, settings.update);
     };
@@ -29,14 +34,16 @@ export function CrudPage(settings) {
         deletePrompt = new prompt.BrowserPrompt();
     }
 
-    var listingContext:any = {
+    var listingContext: any = {
         itemControllerConstructor: EditableItem,
         itemControllerContext: listingActions,
         getData: settings.list,
         add: function () {
             return edit(null, settings.create);
-        }
+        },
+        pageActions: pageActions
     };
+
     controller.create(settings.listController, EditableItemsListController, listingContext);
 
     var editorContext: any = {

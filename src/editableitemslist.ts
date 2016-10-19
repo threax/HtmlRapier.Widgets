@@ -36,6 +36,10 @@ export function EditableItemsListController(bindings, context) {
         this.add = add;
     }
 
+    for (var key in context.pageActions) {
+        this[key] = context.pageActions[key];
+    }
+
     context.showLoad = function () {
         formToggles.activate(load);
     };
