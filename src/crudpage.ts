@@ -4,7 +4,7 @@ import * as controller from 'hr.controller';
 import { JsonObjectEditor } from 'hr.widgets.jsonobjecteditor';
 import { EditableItemsListController } from 'hr.widgets.editableitemslist';
 import { EditableItem } from 'hr.widgets.editableitem';
-import * as prompt from 'hr.widgets.prompt';
+import * as confirm from 'hr.widgets.confirm';
 
 /**
  * This is a shortcut to create a page to create, read, update and delete a type of
@@ -29,9 +29,9 @@ export function CrudPage(settings) {
 
     listingActions.del = deleteItem;
 
-    var deletePrompt = settings['deletePrompt'];
-    if (deletePrompt === undefined) {
-        deletePrompt = new prompt.BrowserPrompt();
+    var deleteConfirm = settings['deletePrompt'];
+    if (deleteConfirm === undefined) {
+        deleteConfirm = new confirm.BrowserConfirm();
     }
 
     var listingContext: any = {
@@ -66,7 +66,7 @@ export function CrudPage(settings) {
     this.refreshData = refreshData;
 
     function deleteItem(item) {
-        return deletePrompt.prompt("Delete " + item.name + " ?")
+        return deleteConfirm.prompt("Delete " + item.name + " ?")
             .then(function (result) {
                 if (result) {
                     listingContext.showLoad();
