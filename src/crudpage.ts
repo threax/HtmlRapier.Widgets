@@ -18,6 +18,10 @@ export function CrudPage(settings) {
         listingActions = {};
     }
 
+    if (settings['itemNameProperty'] === undefined) {
+        settings.itemNameProperty = "name";
+    }
+
     var pageActions = settings['pageActions'];
     if (pageActions === undefined) {
         pageActions = {};
@@ -66,7 +70,7 @@ export function CrudPage(settings) {
     this.refreshData = refreshData;
 
     function deleteItem(item) {
-        return deleteConfirm.prompt("Delete " + item.name + " ?")
+        return deleteConfirm.confirm("Delete " + item[settings.itemNameProperty] + " ?")
             .then(function (result) {
                 if (result) {
                     listingContext.showLoad();
