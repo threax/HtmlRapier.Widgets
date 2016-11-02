@@ -18,7 +18,7 @@ export function JsonObjectEditor(bindings, context) {
     var modeModel = bindings.getModel('mode');
     var titleModel = bindings.getModel('title');
     var errorModel = bindings.getModel('error');
-    var formModel = new jsonEditor.create(bindings.getHandle("editorHolder"), {
+    var formModel = jsonEditor.create(bindings.getHandle("editorHolder"), {
         schema: context.schema,
         disable_edit_json: true,
         disable_properties: true,
@@ -26,7 +26,8 @@ export function JsonObjectEditor(bindings, context) {
         show_errors: "always",
         custom_validators: [
             showCurrentErrorValidator
-        ]
+        ],
+        strongConstructor: context.strongConstructor
     });
     var formEditor = formModel.getEditor();
     var fieldWatcher = new FieldWatcher(formEditor);

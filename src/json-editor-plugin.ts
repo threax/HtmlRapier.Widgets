@@ -1,6 +1,7 @@
 ﻿"use strict";
 
-import { JSONEditor } from 'jdorn.json-editor';
+import { JSONEditor, JSONEditorOptions } from 'jdorn.json-editor';
+import * as models from 'hr.models'
 
 JSONEditor.defaults.theme = 'bootstrap3custom';
 JSONEditor.defaults.iconlib = 'bootstrap3';
@@ -21,34 +22,73 @@ JSONEditor.defaults.resolvers.unshift(function (schema) {
 });
 
 /**
- * A model interface for the json editor.
- * @param {JSONEditor} editor - The editor to wrap.
+ * A custom model for json editor instances. Gives access to the wrapped editor.
  */
-export function Model(editor) {
-    this.setData = function (data) {
-        editor.root.setValue(data, true);
+export interface JsonEditorModel<T> extends models.Model<T>{
+    /**
+     * The editor that this model wraps.
+     */
+    getEditor();
+}
+
+/**
+ * This class actually implements the interface that talks to the JSON Editor.
+ */
+class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
+    private editor;
+
+    constructor(editor){
+        this.editor = editor;
     }
 
-    this.appendData = this.setData;
-
-    function clear() {
-        editor.root.setValue(null, true);
-    }
-    this.clear = clear;
-
-    this.getData = function () {
-        return editor.getValue();
+    setData(data:T) {
+        this.editor.root.setValue(data, true);
     }
 
-    this.getSrc = function () {
-        return null;
+    appendData = this.setData;
+
+    clear() {
+        this.editor.root.setValue(null, true);
     }
 
-    this.getEditor = function () {
-        return editor;
+    getData():T {
+        return this.editor.getValue();
+    }
+
+    getEditor() {
+        return this.editor;
     }
 }
 
-export function create(element: HTMLElement, options?:any): void {
-    return new Model(new JSONEditor(element, options));
+/**
+ * This is a typed model for the json editor. It will use the strongConstructor passed in
+ * to convert to a strong type.
+ */
+class JsonEditorTypedModel<T> extends models.StrongTypedModel<T> implements JsonEditorModel<T>
+{
+    constructor(childModel: JsonEditorModel<T>, strongConstructor: models.StrongTypeConstructor<T>) {
+        super(childModel, strongConstructor);
+    }
+
+    getEditor() {
+        return this.childModel.getEditor();
+    }
+}
+
+/**
+ * The options for the Json Editor Model. Also provides the options for the Json Editor the model will wrap.
+ */
+export interface JsonEditorModelOptions<T> extends JSONEditorOptions{
+    strongConstructor?: models.StrongTypeConstructor<T>;
+}
+
+/**
+ * Helper function to create the right model depending on your settings.
+ */
+export function create<T>(element: HTMLElement, options?:JsonEditorModelOptions<T>): JsonEditorModel<T> {
+    var model:JsonEditorModel<T> = new ConcreteJsonEditorModel<T>(new JSONEditor(element, options))
+    if(options !== undefined && options.strongConstructor !== undefined){
+        model = new JsonEditorTypedModel<T>(model, options.strongConstructor);
+    }
+    return model;
 }

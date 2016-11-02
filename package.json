@@ -3,9 +3,9 @@
   "version": "1.2.5",
   "private": false,
   "dependencies": {
-    "htmlrapier": "^1.2.2",
+    "htmlrapier": "threax/HtmlRapier",
     "htmlrapier.bootstrap": "^1.0.1",
-    "htmlrapier.json-editor": "^1.0.4"
+    "htmlrapier.json-editor": "threax/HtmlRapier.json-editor"
   },
   "devDependencies": {
     "threax-gulp-tk": "^1.2.2",
