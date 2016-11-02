@@ -73,7 +73,7 @@ export class JsonObjectEditor<T> {
         this.fieldWatcher = new FieldWatcher(this.formEditor);
 
         this.dialog = bindings.getToggle('dialog');
-        this.dialog.offEvent.add(this, closed);
+        this.dialog.offEvent.add(this, this.closed);
 
         this.load = bindings.getToggle('load');
         this.main = bindings.getToggle('main');

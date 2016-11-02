@@ -96,11 +96,9 @@ export class CrudPage<T> {
             this.pageActions = {};
         }
 
-        this.listingActions.edit = function (item) {
-            return this.edit(item, settings.update);
-        };
+        this.listingActions.edit = (item) => this.edit(item, settings.update);
 
-        this.listingActions.del = this.deleteItem;
+        this.listingActions.del = (item) => this.deleteItem(item);
 
         this.deleteConfirm = settings['deletePrompt'];
         if (this.deleteConfirm === undefined) {
