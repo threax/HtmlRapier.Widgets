@@ -3,52 +3,80 @@
 import * as controller from 'hr.controller';
 import * as toggles from 'hr.toggles';
 
+export class EditableItemsListControllerSettings{
+    add?:any;
+
+    itemControllerConstructor;
+
+    itemControllerContext;
+
+    pageActions:((evt:any)=>void)[];
+}
+
 /**
  * This controller will bind data loaded to a model called 'listing'.
  * It also defines an add function that can be called as an hr event.
  */
-export function EditableItemsListController(bindings, context) {
-    var listing = bindings.getModel('listing');
+export class EditableItemsListController<T> {
+    static GetCreator<T>(context: EditableItemsListControllerSettings){
+        return new controller.ControllerBuilder<EditableItemsListController<T>, EditableItemsListControllerSettings, T>(EditableItemsListController, context);
+    }
 
-    var load = bindings.getToggle('load');
-    var main = bindings.getToggle('main');
-    var error = bindings.getToggle('error');
-    var formToggles = new toggles.Group(load, main, error);
-    formToggles.activate(main);
+    private addFunc;
+    private itemControllerConstructor;
+    private itemControllerContext;
+    private listing;
+    private load: toggles.Toggle;
+    private main: toggles.Toggle;
+    private error: toggles.Toggle;
+    private formToggles: toggles.Group;
 
-    function setData(data) {
-        var creator = undefined;
-        if (context.itemControllerConstructor !== undefined) {
-            creator = controller.createOnCallback(context.itemControllerConstructor, context.itemControllerContext);
+    constructor(bindings, context: EditableItemsListControllerSettings){
+        this.itemControllerConstructor = context.itemControllerConstructor;
+        this.itemControllerContext = context.itemControllerContext;
+
+        this.listing = bindings.getModel('listing');
+
+        var load = bindings.getToggle('load');
+        var main = bindings.getToggle('main');
+        var error = bindings.getToggle('error');
+        var formToggles = new toggles.Group(load, main, error);
+        formToggles.activate(main);
+
+        if (context.add !== undefined) {
+            this.addFunc = context.add;
         }
 
-        listing.setData(data, creator);
-    }
-    this.setData = setData;
-    context.setData = setData;
-
-    function add(evt) {
-        evt.preventDefault();
-        return context.add();
+        for (var key in context.pageActions) {
+            this[key] = context.pageActions[key];
+        }
     }
 
-    if (context.add !== undefined) {
-        this.add = add;
+    add(evt) {
+        if(this.addFunc !== undefined){
+            evt.preventDefault();
+            return this.addFunc();
+        }
     }
 
-    for (var key in context.pageActions) {
-        this[key] = context.pageActions[key];
+    setData(data:T) {
+        var creator = undefined;
+        if (this.itemControllerConstructor !== undefined) {
+            creator = controller.createOnCallback(this.itemControllerConstructor, this.itemControllerContext);
+        }
+
+        this.listing.setData(data, creator);
     }
 
-    context.showLoad = function () {
-        formToggles.activate(load);
+    showLoad() {
+        this.formToggles.activate(this.load);
     };
 
-    context.showMain = function () {
-        formToggles.activate(main);
+    showMain() {
+        this.formToggles.activate(this.main);
     }
 
-    context.showError = function () {
-        formToggles.activate(error);
+    showError() {
+        this.formToggles.activate(this.error);
     }
 };

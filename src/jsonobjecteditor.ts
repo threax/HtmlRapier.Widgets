@@ -5,6 +5,7 @@ import * as jsonEditor from 'hr.widgets.json-editor-plugin';
 import { ExternalPromise } from 'hr.externalpromise';
 import * as bc from 'hr.bindingcollection';
 import {Model, StrongTypeConstructor} from 'hr.models';
+import {ControllerBuilder} from 'hr.controller';
 
 /**
  * Options for the Json Editor.
@@ -34,6 +35,10 @@ var defaultError = { path: null };
  * promise with an undefined result, which means cancel the operation.
  */
 export class JsonObjectEditor<T> {
+    static GetCreator<T>(context: JsonObjectEditorOptions<T>){
+        return new ControllerBuilder<JsonObjectEditor<T>, JsonObjectEditorOptions<T>, T>(JsonObjectEditor, context);
+    }
+
     private currentError = null;
     private titleModel: Model<T>;
     private errorModel: Model<any>;
