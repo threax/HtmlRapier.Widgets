@@ -2,7 +2,27 @@
 
 import * as toggles from 'hr.toggles';
 import * as jsonEditor from 'hr.widgets.json-editor-plugin';
-import { ExternalPromise } from 'hr.promiseutils';
+import { ExternalPromise } from 'hr.externalpromise';
+import * as bc from 'hr.bindingcollection';
+import {Model, StrongTypeConstructor} from 'hr.models';
+
+/**
+ * Options for the Json Editor.
+ */
+export interface JsonObjectEditorOptions<T>{
+    /**
+     * A Json Schema that describes what to edit.
+     */
+    schema:any;
+
+    /**
+     * A constructor to create a strongly typed version of the object
+     * edited by this editor. If the editor is for an any type you
+     * won't need this, otherwise provide it so the objects coming out
+     * of the editor always have the expected type.
+     */
+    strongConstructor?:StrongTypeConstructor<T>;
+}
 
 var defaultError = { path: null };
 /**
@@ -13,122 +33,132 @@ var defaultError = { path: null };
  * consideres closing this dialog to be a cancellation and will send its
  * promise with an undefined result, which means cancel the operation.
  */
-export function JsonObjectEditor(bindings, context) {
-    var currentError = null
-    var modeModel = bindings.getModel('mode');
-    var titleModel = bindings.getModel('title');
-    var errorModel = bindings.getModel('error');
-    var formModel = jsonEditor.create(bindings.getHandle("editorHolder"), {
-        schema: context.schema,
-        disable_edit_json: true,
-        disable_properties: true,
-        disable_collapse: true,
-        show_errors: "always",
-        custom_validators: [
-            showCurrentErrorValidator
-        ],
-        strongConstructor: context.strongConstructor
-    });
-    var formEditor = formModel.getEditor();
-    var fieldWatcher = new FieldWatcher(formEditor);
+export class JsonObjectEditor<T> {
+    private currentError = null;
+    private titleModel: Model<T>;
+    private errorModel: Model<any>;
+    private formModel: jsonEditor.JsonEditorModel<T>;
+    private modeModel: Model<string>;
+    private formEditor;
+    private fieldWatcher:FieldWatcher;
+    private dialog;
+    private load;
+    private main;
+    private error;
+    private formToggles;
+    private currentPromise: ExternalPromise<T> = null;
 
-    var dialog = bindings.getToggle('dialog');
-    dialog.offEvent.add(this, closed);
+    constructor(bindings: bc.BindingCollection, context: JsonObjectEditorOptions<T>){
+        this.modeModel = bindings.getModel<string>('mode');
+        this.titleModel = bindings.getModel<T>('title');
+        this.errorModel = bindings.getModel('error');
+        this.formModel = jsonEditor.create<T>(bindings.getHandle("editorHolder"), {
+            schema: context.schema,
+            disable_edit_json: true,
+            disable_properties: true,
+            disable_collapse: true,
+            show_errors: "always",
+            custom_validators: [
+                this.showCurrentErrorValidator
+            ],
+            strongConstructor: context.strongConstructor
+        });
 
-    var load = bindings.getToggle('load');
-    var main = bindings.getToggle('main');
-    var error = bindings.getToggle('error');
-    var formToggles = new toggles.Group(load, main, error);
-    formToggles.activate(main);
+        this.formEditor = this.formModel.getEditor();
+        this.fieldWatcher = new FieldWatcher(this.formEditor);
 
-    var currentPromise = null;
+        this.dialog = bindings.getToggle('dialog');
+        this.dialog.offEvent.add(this, closed);
 
-    function edit(data) {
-        currentPromise = new ExternalPromise();
-        titleModel.setData(data);
-        modeModel.setData("Edit");
-        formModel.setData(data);
-        return currentPromise.promise;
+        this.load = bindings.getToggle('load');
+        this.main = bindings.getToggle('main');
+        this.error = bindings.getToggle('error');
+        this.formToggles = new toggles.Group(this.load, this.main, this.error);
+        this.formToggles.activate(this.main);
     }
-    this.edit = edit;
-    context.edit = edit;
 
-    function getData() {
-        return formModel.getData();
+    edit(data:T) : Promise<T> {
+        this.currentPromise = new ExternalPromise<T>();
+        this.titleModel.setData(data);
+        this.modeModel.setData("Edit");
+        this.formModel.setData(data);
+        return this.currentPromise.Promise;
     }
-    context.getData = getData;
 
-    function submit(evt) {
+    getData():T {
+        return this.formModel.getData();
+    }
+
+    submit(evt) {
         evt.preventDefault();
-        if (currentPromise !== null) {
-            var data = getData();
-            var prom = currentPromise;
-            currentPromise = null;
+        if (this.currentPromise !== null) {
+            var data = this.getData();
+            var prom = this.currentPromise;
+            this.currentPromise = null;
             prom.resolve(data);
         }
     }
-    this.submit = submit;
 
-    function closed() {
-        if (currentPromise !== null) {
-            var prom = currentPromise;
-            currentPromise = null;
+    closed() {
+        if (this.currentPromise !== null) {
+            var prom = this.currentPromise;
+            this.currentPromise = null;
             prom.resolve();
         }
     }
 
-    context.showMain = function () {
-        formToggles.activate(main);
+    showMain() {
+        this.formToggles.activate(this.main);
     }
 
-    context.showLoad = function () {
-        formToggles.activate(load);
+    showLoad() {
+        this.formToggles.activate(this.load);
     }
 
-    context.showError = function (err) {
+    showError(err) {
         var errorMessage = "No error message";
         if (err.message !== undefined) {
             errorMessage = err.message;
         }
-        errorModel.setData(errorMessage);
-        formToggles.activate(error);
-        currentError = err;
-        formEditor.onChange();
-        main.on();
+        this.errorModel.setData(errorMessage);
+        this.formToggles.activate(this.error);
+        this.currentError = err;
+        this.formEditor.onChange();
+        this.main.on();
     }
 
-    context.clearError = function () {
-        fieldWatcher.clear();
-        currentError = null;
-        formEditor.onChange();
-        formToggles.activate(main);
-        errorModel.clear();
+    clearError() {
+        this.fieldWatcher.clear();
+        this.currentError = null;
+        this.formEditor.onChange();
+        this.formToggles.activate(this.main);
+        this.errorModel.clear();
     }
 
-    context.show = function () {
-        dialog.on();
+    show() {
+        this.dialog.on();
     }
 
-    context.close = function () {
-        dialog.off();
+    close() {
+        this.dialog.off();
     }
 
-    function showCurrentErrorValidator(schema, value, path):any {
-        if (currentError !== null) {
+    private showCurrentErrorValidator(schema, value, path):any {
+        if (this.currentError !== null) {
             if (path === "root") {
                 return {
                     path: path,
-                    message: currentError.message
+                    message: this.currentError.message
                 }
             }
 
-            if (currentError['errors'] !== undefined) {
+            if (this.currentError['errors'] !== undefined) {
                 //walk path to error
-                var shortPath = errorPath(path);
-                var errorObject = currentError.errors[shortPath];
+                var shortPath = this.errorPath(path);
+                var errorObject = this.currentError.errors[shortPath];
                 if (errorObject !== undefined) {
                     //Listen for changes on field
-                    fieldWatcher.watch(path, shortPath, currentError);
+                    this.fieldWatcher.watch(path, shortPath, this.currentError);
                     return {
                         path: path,
                         message: errorObject
@@ -139,45 +169,59 @@ export function JsonObjectEditor(bindings, context) {
         return defaultError;
     }
 
-    function errorPath(path) {
+    private errorPath(path) {
         return path.replace('root.', '');
     }
 }
 
-function FieldWatcher(formEditor) {
-    var watchers = {};
+class FieldWatcher {
+    private formEditor;
+    private watchers = {};
 
-    function watch(path, errorObjectPath, currentError) {
-        if (watchers[path] !== undefined) {
-            watchers[path].clear();
+    constructor(formEditor){
+        this.formEditor = formEditor;
+    }
+
+    watch(path, errorObjectPath, currentError) {
+        if (this.watchers[path] !== undefined) {
+            this.watchers[path].clear();
         }
 
-        watchers[path] = new Watcher(formEditor, path, errorObjectPath, currentError);
+        this.watchers[path] = new Watcher(this.formEditor, path, errorObjectPath, currentError);
     }
-    this.watch = watch;
 
-    function clear() {
-        for (var key in watchers) {
-            watchers[key].clear();
-            delete watchers[key];
+    clear() {
+        for (var key in this.watchers) {
+            this.watchers[key].clear();
+            delete this.watchers[key];
         }
     }
-    this.clear = clear;
 }
 
-function Watcher(formEditor, path, errorObjectPath, currentError) {
-    function handler() {
-        if (currentError.errors.hasOwnProperty(errorObjectPath)) {
-            delete currentError.errors[errorObjectPath];
+class Watcher{
+    private formEditor;
+    private path;
+    private errorObjectPath;
+    private currentError; 
+
+    constructor(formEditor, path, errorObjectPath, currentError) {
+        this.formEditor = formEditor;
+        this.path = path;
+        this.errorObjectPath = errorObjectPath;
+        this.currentError = currentError;
+
+        formEditor.watch(path, () => this.handler());
+    }
+
+    handler() {
+        if (this.currentError.errors.hasOwnProperty(this.errorObjectPath)) {
+            delete this.currentError.errors[this.errorObjectPath];
         }
         //Not a huge fan of this, but needed to be able to unwatch during a watch callback
-        window.setTimeout(clear, 1);
+        window.setTimeout(this.clear, 1);
     };
 
-    function clear() {
-        formEditor.unwatch(path, handler);
+    clear() {
+        this.formEditor.unwatch(this.path, this.handler);
     }
-    this.clear = clear;
-
-    formEditor.watch(path, handler);
 }
