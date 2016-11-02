@@ -10,8 +10,25 @@ export class CrudPageSettings<T>{
     /**
      * The name of the property in the data that represents 
      * a pretty name for the item we can display to the user.
+     * Defaults to name.
      */
-    itemNameProperty:string;
+    itemNameProperty?:string;
+
+    /**
+     * An optional delete prompt to use to confirm deletion of an item, otherwise
+     * uses the browser confirm dialog.
+     */
+    deletePrompt?:confirm.Confirm;
+
+    /**
+     * Additional actions to listen to for individual items.
+     */
+    listingActions?;
+
+    /**
+     * Additional actions to listen to for the list of items.
+     */
+    pageActions?;
 
     /**
      * A json schema to describe the object that this crud page will edit.
@@ -36,7 +53,7 @@ export class CrudPageSettings<T>{
     /**
      * This function will list all the items in the repository.
      */
-    list:() => Promise<void>;
+    list:() => Promise<T[]>;
 
     /**
      * This function will update the data the page is editing in its repository.
@@ -111,11 +128,11 @@ export class CrudPage<T> {
     refreshData() {
         this.listingController.showLoad();
         return Promise.resolve(this.settings.list())
-            .then(function (data) {
+            .then((data) => {
                 this.listingController.setData(data);
                 this.listingController.showMain();
             })
-            .catch(function (err) {
+            .catch((err) => {
                 this.listingController.showError();
                 throw err;
             });
@@ -139,8 +156,8 @@ export class CrudPage<T> {
         this.itemEditorController.show();
         this.itemEditorController.clearError();
         return Promise.resolve(data)
-            .then(function (data) {
-                this.editorContext.showMain();
+            .then((data) => {
+                this.itemEditorController.showMain();
                 return this.goEdit(data, persistFunc);
             });
     }
@@ -154,13 +171,13 @@ export class CrudPage<T> {
                         throw new Error("Cannot save updates to item, no persistFunc given.");
                     }
                     return Promise.resolve(persistFunc(data))
-                        .then(function (data) {
-                            this.editorContext.close();
+                        .then((data) => {
+                            this.itemEditorController.close();
                             this.refreshData();
                         })
-                        .catch(function (err) {
-                            this.editorContext.showError(err);
-                            var modifiedData = this.editorContext.getData();
+                        .catch((err) => {
+                            this.itemEditorController.showError(err);
+                            var modifiedData = this.itemEditorController.getData();
                             this.goEdit(modifiedData, persistFunc);
                             throw err;
                         });

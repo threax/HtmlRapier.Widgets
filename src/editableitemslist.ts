@@ -25,23 +25,23 @@ export class EditableItemsListController<T> {
     private addFunc;
     private itemControllerConstructor;
     private itemControllerContext;
-    private listing;
+    private listing: controller.Model<T[]>;
     private load: toggles.Toggle;
     private main: toggles.Toggle;
     private error: toggles.Toggle;
     private formToggles: toggles.Group;
 
-    constructor(bindings, context: EditableItemsListControllerSettings){
+    constructor(bindings: controller.BindingCollection, context: EditableItemsListControllerSettings){
         this.itemControllerConstructor = context.itemControllerConstructor;
         this.itemControllerContext = context.itemControllerContext;
 
-        this.listing = bindings.getModel('listing');
+        this.listing = bindings.getModel<T[]>('listing');
 
-        var load = bindings.getToggle('load');
-        var main = bindings.getToggle('main');
-        var error = bindings.getToggle('error');
-        var formToggles = new toggles.Group(load, main, error);
-        formToggles.activate(main);
+        this.load = bindings.getToggle('load');
+        this.main = bindings.getToggle('main');
+        this.error = bindings.getToggle('error');
+        this.formToggles = new toggles.Group(this.load, this.main, this.error);
+        this.formToggles.activate(this.main);
 
         if (context.add !== undefined) {
             this.addFunc = context.add;
@@ -59,7 +59,7 @@ export class EditableItemsListController<T> {
         }
     }
 
-    setData(data:T) {
+    setData(data:T[]) {
         var creator = undefined;
         if (this.itemControllerConstructor !== undefined) {
             creator = controller.createOnCallback(this.itemControllerConstructor, this.itemControllerContext);
