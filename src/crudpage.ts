@@ -118,9 +118,7 @@ export class CrudPage<T> {
             itemControllerConstructor: EditableItem,
             itemControllerContext: this.listingActions,
             getData: settings.list,
-            add: function () {
-                return this.edit(null, settings.create);
-            },
+            add: () => this.edit(null, settings.create),
             pageActions: this.pageActions
         };
 
