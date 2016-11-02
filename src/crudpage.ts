@@ -5,6 +5,7 @@ import { JsonObjectEditor, JsonObjectEditorOptions } from 'hr.widgets.jsonobject
 import { EditableItemsListController } from 'hr.widgets.editableitemslist';
 import { EditableItem } from 'hr.widgets.editableitem';
 import * as confirm from 'hr.widgets.confirm';
+import {StrongTypeConstructor} from 'hr.models';
 
 export class CrudPageSettings<T>{
     /**
@@ -64,6 +65,14 @@ export class CrudPageSettings<T>{
      * This function will delete an item from its repository.
      */
     del:(data:T) => Promise<void>;
+
+    /**
+     * A constructor to create a strongly typed version of the object
+     * edited by this editor. If the editor is for an any type you
+     * won't need this, otherwise provide it so the objects coming out
+     * of the editor always have the expected type.
+     */
+    strongConstructor?:StrongTypeConstructor<T>;
 }
 
 /**
@@ -119,6 +128,7 @@ export class CrudPage<T> {
 
         var editorContext: JsonObjectEditorOptions<T> = {
             schema: settings.schema,
+            strongConstructor: settings.strongConstructor
         };
         this.itemEditorController = JsonObjectEditor.GetCreator<T>(editorContext).create(settings.itemEditorController)[0];
     }

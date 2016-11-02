@@ -223,7 +223,7 @@ class Watcher{
             delete this.currentError.errors[this.errorObjectPath];
         }
         //Not a huge fan of this, but needed to be able to unwatch during a watch callback
-        window.setTimeout(this.clear, 1);
+        window.setTimeout(() => this.clear(), 1);
     };
 
     clear() {
