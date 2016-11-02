@@ -59,7 +59,7 @@ export class JsonObjectEditor<T> {
             disable_collapse: true,
             show_errors: "always",
             custom_validators: [
-                this.showCurrentErrorValidator
+                (schema, value, path) => this.showCurrentErrorValidator(schema, value, path)
             ],
             strongConstructor: context.strongConstructor
         });
