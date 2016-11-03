@@ -1,14 +1,13 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": false,
   "dependencies": {
-    "htmlrapier": "^2.0.0",
-    "htmlrapier.bootstrap": "^2.0.0",
-    "htmlrapier.json-editor": "^2.0.0"
+    "htmlrapier": "^2.1.0",
+    "htmlrapier.bootstrap": "^2.1.0",
+    "htmlrapier.json-editor": "^2.1.0"
   },
   "devDependencies": {
-    "threax-gulp-tk": "^1.2.2",
-    "jsns": "^1.0.0"
+    "threax-gulp-tk": "^2.0.0"
   }
 }
