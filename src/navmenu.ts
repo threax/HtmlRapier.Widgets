@@ -11,9 +11,9 @@ function NavMenu() {
     var itemAdded = new EventHandler();
     this.itemAdded = itemAdded.modifier;
 
-    function add(name, controllerConstructor: any) {
+    function add(name, controllerConstructor: any, context?:any) {
         if (controllerConstructor !== undefined) {
-            controllerConstructor = controller.createOnCallback(controllerConstructor);
+            controllerConstructor = controller.createOnCallback(controllerConstructor, context);
         }
         var item = {
             name: name,
