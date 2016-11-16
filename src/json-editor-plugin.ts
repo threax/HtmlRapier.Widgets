@@ -58,6 +58,10 @@ class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
     getEditor() {
         return this.editor;
     }
+
+    getSrc(){
+        return null;
+    }
 }
 
 /**
