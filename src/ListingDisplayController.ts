@@ -23,8 +23,8 @@ export class ListingDisplayController<T> {
         this.listingModel = bindings.getModel<T>(settings.listingModelName);
         this.lifecycle = new MainLoadErrorLifecycle(
             bindings.getToggle(settings.mainToggleName),
-            bindings.getToggle(settings.errorToggleName),
             bindings.getToggle(settings.loadToggleName),
+            bindings.getToggle(settings.errorToggleName),
             settings.setLoadingOnStart);
     }
 

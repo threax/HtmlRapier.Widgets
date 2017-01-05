@@ -48,8 +48,8 @@ export class ItemEditorController<T> {
         this.toggle = bindings.getToggle(settings.toggleName);
         this.lifecycle = new MainLoadErrorLifecycle(
             bindings.getToggle(settings.mainToggleName),
-            bindings.getToggle(settings.errorToggleName),
             bindings.getToggle(settings.loadToggleName),
+            bindings.getToggle(settings.errorToggleName),
             settings.setLoadingOnStart);
     }
 
