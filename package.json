@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "private": false,
   "dependencies": {
-    "htmlrapier": "^3.0.0",
+    "htmlrapier": "^3.0.1",
     "htmlrapier.bootstrap": "^3.0.0",
     "htmlrapier.json-editor": "^3.0.0"
   },
