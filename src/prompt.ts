@@ -1,7 +1,7 @@
 ﻿"use strict"
 
-export interface Prompt{
-    prompt(message, defaultText): Promise<PromptResult>;
+export abstract class IPrompt{
+    abstract prompt(message, defaultText): Promise<PromptResult>;
 }
 
 export class PromptResult {
@@ -26,7 +26,7 @@ export class PromptResult {
  * A simple prompt that uses the browser prompt function, this wraps that function in a promise
  * so it matches the other prompt interfaces.
  */
-export class BrowserPrompt implements Prompt {
+export class BrowserPrompt implements IPrompt {
     prompt(message, defaultText) {
         return new Promise<PromptResult>(function (resovle, reject) {
             var data = window.prompt(message, defaultText);
