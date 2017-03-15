@@ -5,8 +5,14 @@ import {ValidationError} from 'hr.error';
 
 export type ItemUpdatedCallback<T> = (data: T) => Promise<any>;
 
+/**
+ * Settings for the ItemEditor, optionally takes a schema if you know it ahead of time.
+ * Otherwise use setSchema on the controller manually, note you will need to subclass this controller
+ * to access that function.
+ * @param {any} schema?
+ */
 export class ItemEditorSettings<T> {
-    constructor(schema: any) {
+    constructor(schema?: any) {
         this.schema = schema;
     }
 
@@ -26,16 +32,30 @@ export class ItemEditorController<T> {
         return new controller.ControllerBuilder<ItemEditorController<T>, ItemEditorSettings<T>, void>(ItemEditorController, settings);
     }
 
-    private formModel = null;
+    private formModel: jsonEditor.JsonEditorModel<T> = null;
     private jsonEditor;
     private currentError: Error = null;
     private toggle;
     private updated: ItemUpdatedCallback<T>;
     private lifecycle: MainLoadErrorLifecycle;
+    private editorHandle;
 
     constructor(bindings: controller.BindingCollection, settings: ItemEditorSettings<T>) {
-        this.formModel = jsonEditor.create<any>(bindings.getHandle(settings.editorHolderHandle), {
-            schema: settings.schema,
+        this.editorHandle = bindings.getHandle(settings.editorHolderHandle);
+        if (settings.schema !== undefined) {
+            this.setSchema(settings.schema);
+        }
+        this.toggle = bindings.getToggle(settings.toggleName);
+        this.lifecycle = new MainLoadErrorLifecycle(
+            bindings.getToggle(settings.mainToggleName),
+            bindings.getToggle(settings.loadToggleName),
+            bindings.getToggle(settings.errorToggleName),
+            settings.setLoadingOnStart);
+    }
+
+    protected setSchema(schema) {
+        this.formModel = jsonEditor.create<T>(this.editorHandle, {
+            schema: schema,
             disable_edit_json: true,
             disable_properties: true,
             disable_collapse: true,
@@ -45,12 +65,6 @@ export class ItemEditorController<T> {
             ],
         });
         this.jsonEditor = this.formModel.getEditor();
-        this.toggle = bindings.getToggle(settings.toggleName);
-        this.lifecycle = new MainLoadErrorLifecycle(
-            bindings.getToggle(settings.mainToggleName),
-            bindings.getToggle(settings.loadToggleName),
-            bindings.getToggle(settings.errorToggleName),
-            settings.setLoadingOnStart);
     }
 
     public editData(data: T, updated: ItemUpdatedCallback<T>) {
