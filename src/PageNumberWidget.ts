@@ -29,7 +29,9 @@ export interface PageNumberState {
     totalPages: number;
     itemStart: number;
     itemEnd: number;
-    totalItems: number;
+    total: number;
+    offset: number;
+    limit: number;
 }
 
 export interface OffsetLimitTotal {
@@ -55,7 +57,9 @@ export class HypermediaPageState implements PageNumberState {
     public totalPages: number;
     public itemStart: number;
     public itemEnd: number;
-    public totalItems: number;
+    public total: number;
+    public offset: number;
+    public limit: number;
 
     constructor(pageData: HypermediaPageData) {
         var loc = pageData.data;
@@ -75,11 +79,13 @@ export class HypermediaPageState implements PageNumberState {
         this.itemStart = pageData.data.offset * pageData.data.limit;
         this.itemEnd = this.itemStart + pageData.data.limit;
         ++this.itemStart; //Increment so we start at 1 not 0.
-        this.totalItems = pageData.data.total;
+        this.total = pageData.data.total;
         //Make sure we are displaying the correct number of items.
-        if (this.itemEnd > this.totalItems) {
-            this.itemEnd = this.totalItems;
+        if (this.itemEnd > this.total) {
+            this.itemEnd = this.total;
         }
+        this.offset = pageData.data.offset;
+        this.limit = pageData.data.limit;
     }
 }
 
