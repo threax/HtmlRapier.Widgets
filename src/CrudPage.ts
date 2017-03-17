@@ -274,6 +274,7 @@ export class CrudPageNumbers extends ICrudQueryComponent {
         this.totalPerPageModel.setData({
             itemsPerPage: pageState.limit
         });
+        this.currentPage = pageState.offset;
     }
 
     private async handlePageLoad(promise: Promise<any>) {
