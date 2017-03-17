@@ -617,7 +617,8 @@ export abstract class HypermediaCrudService extends ICrudService {
  * try to add all services needed to make a crud page, but you will have to inject
  * your own ICrudService as the final piece to make everything work.
  * Since this uses try, you can override any services by injecting them before calling
- * this function.
+ * this function. This will also inject the CrudPageNumbers and CrudSearch controllers,
+ * so you can make instances of those without registering them.
  * @param {controller.ServiceCollection} services The service collection to add services to.
  */
 export function AddServices(services: controller.ServiceCollection) {
@@ -626,6 +627,8 @@ export function AddServices(services: controller.ServiceCollection) {
     services.tryAddTransient(CrudTableRowController, CrudTableRowController);
     services.tryAddSingleton(IConfirm, s => new BrowserConfirm());
     services.tryAddSingleton(CrudItemEditorController, CrudItemEditorController);
+    services.tryAddScoped(CrudPageNumbers, CrudPageNumbers);
+    services.tryAddScoped(CrudSearch, CrudSearch);
     services.tryAddSingleton(CrudQueryManager, s => {
         return new CrudQueryManager();
     });
