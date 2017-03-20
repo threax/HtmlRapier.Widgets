@@ -34,7 +34,7 @@ export abstract class ICrudService {
 
     public abstract async getItemSchema(): Promise<any>;
 
-    public abstract async add();
+    public abstract async add(item?: any);
 
     public abstract async canAdd(): Promise<boolean>;
 
@@ -448,8 +448,11 @@ export abstract class HypermediaCrudService extends ICrudService {
 
     protected abstract getActualSchema(entryPoint): Promise<any>;
 
-    public async add() {
-        this.fireShowItemEditorEvent(new ShowItemEditorEventArgs({}, a => this.finishAdd(a)));
+    public async add(item?: any) {
+        if (item === undefined) {
+            item = {};
+        }
+        this.fireShowItemEditorEvent(new ShowItemEditorEventArgs(item, a => this.finishAdd(a)));
     }
 
     private async finishAdd(data) {
