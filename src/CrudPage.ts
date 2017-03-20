@@ -347,13 +347,13 @@ export class CrudSearch extends ICrudQueryComponent {
 
 export class CrudTableController extends ListingDisplayController<any> {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager];
+        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder];
     }
 
     private crudService: ICrudService;
     private queryManager: CrudQueryManager;
 
-    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager) {
+    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder) {
         super(bindings, options);
 
         this.queryManager = queryManager;
@@ -379,8 +379,7 @@ export class CrudTableController extends ListingDisplayController<any> {
     public setData(pageData: any) {
         var items = this.crudService.getItems(pageData);
         this.clearData();
-        var builder = new controller.InjectedControllerBuilder(this);
-        var listingCreator = builder.createOnCallback(CrudTableRowController);
+        var listingCreator = this.builder.createOnCallback(CrudTableRowController);
         for (var i = 0; i < items.length; ++i) {
             var itemData = this.crudService.getListingDisplayObject(items[i]);
             this.appendData(itemData, (b, d) => {
