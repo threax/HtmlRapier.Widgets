@@ -25,6 +25,11 @@ export class ItemEditorSettings<T> {
     setLoadingOnStart: boolean = true;
 }
 
+interface DataToEdit {
+    data: any,
+    updated: ItemUpdatedCallback<any>
+}
+
 var defaultError = { path: null };
 
 export class ItemEditorController<T> {
@@ -39,6 +44,7 @@ export class ItemEditorController<T> {
     private updated: ItemUpdatedCallback<T>;
     private lifecycle: MainLoadErrorLifecycle;
     private editorHandle;
+    private dataToEdit: DataToEdit = undefined; //Sometimes the data is set to edit before the schema is loaded, in that case it will be stored here temporarily
 
     constructor(bindings: controller.BindingCollection, settings: ItemEditorSettings<T>) {
         this.editorHandle = bindings.getHandle(settings.editorHolderHandle);
@@ -65,14 +71,26 @@ export class ItemEditorController<T> {
             ],
         });
         this.jsonEditor = this.formModel.getEditor();
+        if (this.dataToEdit !== undefined) {
+            this.editData(this.dataToEdit.data, this.dataToEdit.updated);
+            this.dataToEdit = undefined;
+        }
     }
 
     public editData(data: T, updated: ItemUpdatedCallback<T>) {
         this.currentError = null;
-        this.formModel.setData(data);
-        this.toggle.on();
-        this.lifecycle.showMain();
-        this.updated = updated;
+        if (this.formModel) {
+            this.formModel.setData(data);
+            this.toggle.on();
+            this.lifecycle.showMain();
+            this.updated = updated;
+        }
+        else {
+            this.dataToEdit = {
+                data: data, //No form yet, store data until we get one
+                updated: updated
+            };
+        }
     }
 
     public submit(evt) {
