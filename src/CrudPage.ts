@@ -470,7 +470,12 @@ export abstract class HypermediaCrudService extends ICrudService {
     protected abstract canAddItem(entryPoint): boolean;
 
     public async edit(item: HypermediaCrudDataResult) {
-        this.fireShowItemEditorEvent(new ShowItemEditorEventArgs(item.data, a => this.finishEdit(a, item)));
+        var data = this.getEditObject(item);
+        this.fireShowItemEditorEvent(new ShowItemEditorEventArgs(data, a => this.finishEdit(a, item)));
+    }
+
+    protected getEditObject(item: HypermediaCrudDataResult) {
+        return item.data;
     }
 
     private async finishEdit(data, item: HypermediaCrudDataResult) {
