@@ -2,6 +2,8 @@
 
 import { JSONEditor, JSONEditorOptions } from 'jdorn.json-editor';
 import * as models from 'hr.models'
+import * as schema from 'hr.widgets.SchemaConverter';
+import * as controller from 'hr.controller';
 
 JSONEditor.defaults.theme = 'bootstrap3custom';
 JSONEditor.defaults.iconlib = 'bootstrap3';
@@ -95,4 +97,34 @@ export function create<T>(element: HTMLElement, options?:JsonEditorModelOptions<
         model = new JsonEditorTypedModel<T>(model, options.strongConstructor);
     }
     return model;
+}
+
+class JsonEditorSchemaConverter extends schema.ISchemaConverter {
+    public static get InjectorArgs(): controller.DiFunction<any>[] {
+        return [];
+    }
+
+    public convert(schema): any {
+        var schema = JSON.parse(JSON.stringify(schema));
+
+        var properties = schema.properties;
+        if (properties) {
+            for (var key in properties) {
+                var prop = properties[key];
+                if (prop["x-enumSource"]) {
+                    prop.type = "select";
+                    prop.enumSource = [prop["x-enumSource"]];
+                }
+            }
+        }
+
+        return schema;
+    }
+}
+
+/**
+ * Setup the services to use the json editor schema converter.
+ */
+export function AddServices(services: controller.ServiceCollection) {
+    services.tryAddScoped(schema.ISchemaConverter, JsonEditorSchemaConverter);
 }

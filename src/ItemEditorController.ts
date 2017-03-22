@@ -1,7 +1,7 @@
 ﻿import * as controller from 'hr.controller';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as jsonEditor from 'hr.widgets.json-editor-plugin';
-import {ValidationError} from 'hr.error';
+import { ValidationError } from 'hr.error';
 
 export type ItemUpdatedCallback<T> = (data: T) => Promise<any>;
 
@@ -144,4 +144,11 @@ export class ItemEditorController<T> {
     private errorPath(path) {
         return path.replace('root.', '');
     }
+}
+
+/**
+ * Setup the services to use the json editor schema converter.
+ */
+export function AddServices(services: controller.ServiceCollection) {
+    jsonEditor.AddServices(services);
 }

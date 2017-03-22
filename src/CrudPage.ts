@@ -3,14 +3,15 @@ import { ListingDisplayController, ListingDisplayOptions } from 'hr.widgets.List
 import { IConfirm, BrowserConfirm } from 'hr.widgets.confirm';
 import * as pageWidget from 'hr.widgets.PageNumberWidget';
 export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
-import { ItemEditorController, ItemEditorSettings, ItemUpdatedCallback } from 'hr.widgets.ItemEditorController';
+import * as itemEditor from 'hr.widgets.ItemEditorController';
 import * as events from 'hr.eventdispatcher';
+import * as schema from 'hr.widgets.SchemaConverter';
 
 export class ShowItemEditorEventArgs {
     data: any;
-    update: ItemUpdatedCallback<any>
+    update: itemEditor.ItemUpdatedCallback<any>
 
-    constructor(data: any, update: ItemUpdatedCallback<any>) {
+    constructor(data: any, update: itemEditor.ItemUpdatedCallback<any>) {
         this.data = data;
         this.update = update;
     }
@@ -83,14 +84,17 @@ export abstract class ICrudService {
     }
 }
 
-export class CrudItemEditorController extends ItemEditorController<any>{
+export class CrudItemEditorController extends itemEditor.ItemEditorController<any>{
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, ICrudService];
+        return [controller.BindingCollection, ICrudService, schema.ISchemaConverter];
     }
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService) {
-        var settings = new ItemEditorSettings();
+    private schemaConverter: schema.ISchemaConverter;
+
+    constructor(bindings: controller.BindingCollection, crudService: ICrudService, schemaConverter: schema.ISchemaConverter) {
+        var settings = new itemEditor.ItemEditorSettings();
         super(bindings, settings);
+        this.schemaConverter = schemaConverter;
         crudService.showItemEditorEvent.add(arg => {
             this.editData(arg.data, arg.update);
         });
@@ -99,7 +103,9 @@ export class CrudItemEditorController extends ItemEditorController<any>{
 
     private async setup(crudService: ICrudService) {
         try {
-            this.setSchema(await crudService.getItemSchema());
+            var schema = await crudService.getItemSchema();
+            schema = await this.schemaConverter.convert(schema);
+            this.setSchema(schema);
         }
         catch (err) {
             console.log("An error occured loading the schema for the CrudItemEditor. Message: " + err.message);
@@ -630,6 +636,7 @@ export abstract class HypermediaCrudService extends ICrudService {
  * @param {controller.ServiceCollection} services The service collection to add services to.
  */
 export function AddServices(services: controller.ServiceCollection) {
+    itemEditor.AddServices(services);
     services.tryAddScoped(CrudTableController, CrudTableController);
     services.tryAddSingletonInstance(ListingDisplayOptions, new ListingDisplayOptions());
     services.tryAddTransient(CrudTableRowController, CrudTableRowController);
