@@ -111,9 +111,18 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
         if (properties) {
             for (var key in properties) {
                 var prop = properties[key];
-                if (prop["x-enumSource"]) {
-                    prop.type = "select";
-                    prop.enumSource = [prop["x-enumSource"]];
+                //Convert ui type first
+                if (prop["x-ui-type"]) {
+                    prop.type = prop["x-ui-type"];
+                }
+
+                if (prop["x-values"]) {
+                    var source = {
+                        source: prop["x-values"],
+                        title: "{{item.label}}",
+                        value: "{{item.value}}"
+                    }
+                    prop.enumSource = [source];
                 }
             }
         }
