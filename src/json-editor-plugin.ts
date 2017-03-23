@@ -107,6 +107,10 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
     public convert(schema): any {
         var schema = JSON.parse(JSON.stringify(schema));
 
+        if (schema["x-ui-title"]) {
+            schema.title = schema["x-ui-title"];
+        }
+
         var properties = schema.properties;
         if (properties) {
             for (var key in properties) {
