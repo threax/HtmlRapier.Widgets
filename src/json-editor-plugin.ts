@@ -4,6 +4,7 @@ import { JSONEditor, JSONEditorOptions } from 'jdorn.json-editor';
 import * as models from 'hr.models'
 import * as schema from 'hr.widgets.SchemaConverter';
 import * as controller from 'hr.controller';
+import * as typeId from 'hr.typeidentifiers';
 
 JSONEditor.defaults.theme = 'bootstrap3custom';
 JSONEditor.defaults.iconlib = 'bootstrap3';
@@ -127,6 +128,19 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                         value: "{{item.value}}"
                     }
                     prop.enumSource = [source];
+                }
+
+                //Remove null options for types, not really using the ui that way
+                if (prop.type && typeId.isArray(prop.type)) {
+                    var type: string[] = prop.type;
+                    //Don't really care, take the first type that is not "null"
+                    for (let i = 0; i < type.length; ++i) {
+                        var t = type[i];
+                        if (t.toLowerCase() !== "null") {
+                            prop.type = t; //Set the type to just our discovered type
+                            break;
+                        }
+                    }
                 }
             }
         }
