@@ -117,6 +117,18 @@ export class ItemEditorController<T> {
         this.toggle.off();
     }
 
+    protected activateMain() {
+        this.lifecycle.showMain();
+    }
+
+    protected activateLoad() {
+        this.lifecycle.showLoad();
+    }
+
+    protected activateError(error: Error) {
+        this.lifecycle.showError(error);
+    }
+
     /**
      * Activate a toggle defined in a subclass, it will go through the main lifecyle and deactivate those toggles and then activate the one you pass in.
      * @param toggle

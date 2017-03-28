@@ -36,6 +36,7 @@ export abstract class IInputService {
     private showItemEditorDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
     private setItemSchemaDispatcher = new events.ActionEventDispatcher<SetItemSchemaEventArgs>();
     private inputCompleteDispatcher = new events.ActionEventDispatcher<void>();
+    private dataLoadingDispatcher = new events.ActionEventDispatcher<void>();
 
     public abstract canNext(): boolean;
 
@@ -61,6 +62,14 @@ export abstract class IInputService {
         this.setItemSchemaDispatcher.fire(args);
     }
 
+    public get dataLoading() {
+        return this.dataLoadingDispatcher.modifier;
+    }
+
+    protected fireDataLoading() {
+        this.dataLoadingDispatcher.fire(undefined);
+    }
+
     public get inputCompleted() {
         return this.inputCompleteDispatcher.modifier;
     }
@@ -84,6 +93,9 @@ export class InputItemEditorController extends itemEditor.ItemEditorController<a
         this.schemaConverter = schemaConverter;
         this.completeToggle = bindings.getToggle("complete");
         this.completeToggle.off();
+        inputService.dataLoading.add(arg => {
+            this.activateLoad();
+        });
         inputService.showItemEditorEvent.add(arg => {
             this.editData(arg.data, arg.update);
         });
@@ -173,6 +185,7 @@ export abstract class HypermediaInputService extends IInputService {
     }
 
     protected async setPage(pagePromise: Promise<HypermediaInputPageResult>) {
+        this.fireDataLoading();
         this.page = await pagePromise;
         if (this.page.canSave()) {
             var docs = await this.page.getSaveDocs();
