@@ -30,4 +30,8 @@ export class MainLoadErrorLifecycle {
     public showError(error: Error) {
         this.toggleGroup.activate(this.errorToggle);
     }
+
+    public showOther(toggle: toggles.Toggle) {
+        this.toggleGroup.activate(toggle);
+    }
 }

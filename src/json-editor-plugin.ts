@@ -29,9 +29,14 @@ JSONEditor.defaults.resolvers.unshift(function (schema) {
  */
 export interface JsonEditorModel<T> extends models.Model<T>{
     /**
-     * The editor that this model wraps.
+     * Call the editor's onChange function.
      */
-    getEditor();
+    onChange();
+
+    /**
+     * Replace the schema on the model
+     */
+    replaceSchema(schema);
 }
 
 /**
@@ -39,9 +44,13 @@ export interface JsonEditorModel<T> extends models.Model<T>{
  */
 class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
     private editor;
+    private element: HTMLElement;
+    private options: JsonEditorModelOptions<T>;
 
-    constructor(editor){
-        this.editor = editor;
+    constructor(element: HTMLElement, options: JsonEditorModelOptions<T>){
+        this.editor = new JSONEditor(element, options);
+        this.element = element;
+        this.options = options;
     }
 
     setData(data:T) {
@@ -58,12 +67,18 @@ class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
         return this.editor.getValue();
     }
 
-    getEditor() {
-        return this.editor;
+    getSrc() {
+        return null;
     }
 
-    getSrc(){
-        return null;
+    onChange() {
+        this.editor.onChange();
+    }
+
+    replaceSchema(schema) {
+        this.editor.destroy();
+        this.options.schema = schema;
+        this.editor = new JSONEditor(this.element, this.options);
     }
 }
 
@@ -77,8 +92,12 @@ class JsonEditorTypedModel<T> extends models.StrongTypedModel<T> implements Json
         super(childModel, strongConstructor);
     }
 
-    getEditor() {
-        return this.childModel.getEditor();
+    onChange() {
+        this.childModel.onChange();
+    }
+
+    replaceSchema(schema) {
+        this.childModel.replaceSchema(schema);
     }
 }
 
@@ -93,7 +112,7 @@ export interface JsonEditorModelOptions<T> extends JSONEditorOptions{
  * Helper function to create the right model depending on your settings.
  */
 export function create<T>(element: HTMLElement, options?:JsonEditorModelOptions<T>): JsonEditorModel<T> {
-    var model:JsonEditorModel<T> = new ConcreteJsonEditorModel<T>(new JSONEditor(element, options))
+    var model:JsonEditorModel<T> = new ConcreteJsonEditorModel<T>(element, options)
     if(options !== undefined && options.strongConstructor !== undefined){
         model = new JsonEditorTypedModel<T>(model, options.strongConstructor);
     }

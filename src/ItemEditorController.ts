@@ -2,6 +2,7 @@
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as jsonEditor from 'hr.widgets.json-editor-plugin';
 import { ValidationError } from 'hr.error';
+import * as toggles from 'hr.toggles';
 
 export type ItemUpdatedCallback<T> = (data: T) => Promise<any>;
 
@@ -38,7 +39,6 @@ export class ItemEditorController<T> {
     }
 
     private formModel: jsonEditor.JsonEditorModel<T> = null;
-    private jsonEditor;
     private currentError: Error = null;
     private toggle;
     private updated: ItemUpdatedCallback<T>;
@@ -60,20 +60,24 @@ export class ItemEditorController<T> {
     }
 
     protected setSchema(schema) {
-        this.formModel = jsonEditor.create<T>(this.editorHandle, {
-            schema: schema,
-            disable_edit_json: true,
-            disable_properties: true,
-            disable_collapse: true,
-            show_errors: "always",
-            custom_validators: [
-                (schema, value, path) => this.showCurrentErrorValidator(schema, value, path)
-            ],
-        });
-        this.jsonEditor = this.formModel.getEditor();
-        if (this.dataToEdit !== undefined) {
-            this.editData(this.dataToEdit.data, this.dataToEdit.updated);
-            this.dataToEdit = undefined;
+        if (this.formModel) {
+            this.formModel.replaceSchema(schema);
+        }
+        else {
+            this.formModel = jsonEditor.create<T>(this.editorHandle, {
+                schema: schema,
+                disable_edit_json: true,
+                disable_properties: true,
+                disable_collapse: true,
+                show_errors: "always",
+                custom_validators: [
+                    (schema, value, path) => this.showCurrentErrorValidator(schema, value, path)
+                ],
+            });
+            if (this.dataToEdit !== undefined) {
+                this.editData(this.dataToEdit.data, this.dataToEdit.updated);
+                this.dataToEdit = undefined;
+            }
         }
     }
 
@@ -103,7 +107,7 @@ export class ItemEditorController<T> {
             })
             .catch(err => {
                 this.currentError = err;
-                this.jsonEditor.onChange();
+                this.formModel.onChange();
                 this.lifecycle.showMain();
             });
     }
@@ -111,6 +115,14 @@ export class ItemEditorController<T> {
     public cancel(evt) {
         evt.preventDefault();
         this.toggle.off();
+    }
+
+    /**
+     * Activate a toggle defined in a subclass, it will go through the main lifecyle and deactivate those toggles and then activate the one you pass in.
+     * @param toggle
+     */
+    protected activateOtherToggle(toggle: toggles.Toggle) {
+        this.lifecycle.showOther(toggle);
     }
 
     private showCurrentErrorValidator(schema, value, path): any {
