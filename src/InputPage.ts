@@ -145,18 +145,10 @@ export class InputPagesController {
     }
 }
 
-interface HypermediaInputPageResult {
+interface HypermediaInputResult {
     data: any;
 
-    previous(): Promise<HypermediaInputPageResult>;
-
-    canPrevious(): boolean;
-
-    next(): Promise<HypermediaInputPageResult>;
-
-    canNext(): boolean;
-
-    save(data: any): Promise<HypermediaInputPageResult>;
+    save(data: any): Promise<HypermediaInputResult>;
 
     canSave(): boolean;
 
@@ -165,26 +157,50 @@ interface HypermediaInputPageResult {
     hasSaveDocs(): boolean;
 }
 
+interface HypermediaPreviousInputResult {
+    previous(): Promise<HypermediaInputResult>;
+
+    canPrevious(): boolean;
+}
+
+function IsPreviousResult(t: any): t is HypermediaPreviousInputResult {
+    return t && (<HypermediaPreviousInputResult>t).canPrevious !== undefined && (<HypermediaPreviousInputResult>t).previous !== undefined;
+}
+
+interface HypermediaNextInputResult {
+    next(): Promise<HypermediaInputResult>;
+
+    canNext(): boolean;
+}
+
+function IsNextResult(t: any): t is HypermediaNextInputResult {
+    return t && (<HypermediaNextInputResult>t).canNext !== undefined && (<HypermediaNextInputResult>t).next !== undefined;
+}
+
 export abstract class HypermediaInputService extends IInputService {
-    private page: HypermediaInputPageResult;
+    private page: HypermediaInputResult;
 
     public canNext(): boolean {
-        return this.page.canNext();
+        return IsNextResult(this.page) && this.page.canNext();
     }
 
     public next() {
-        this.setPage(this.page.next());
+        if (IsNextResult(this.page)) {
+            this.setPage(this.page.next());
+        }
     }
 
     public canPrevious(): boolean {
-        return this.page.canPrevious();
+        return IsPreviousResult(this.page) && this.page.canPrevious();
     }
 
     public previous() {
-        this.setPage(this.page.previous());
+        if (IsPreviousResult(this.page)) {
+            this.setPage(this.page.previous());
+        }
     }
 
-    protected async setPage(pagePromise: Promise<HypermediaInputPageResult>) {
+    protected async setPage(pagePromise: Promise<HypermediaInputResult>) {
         this.fireDataLoading();
         this.page = await pagePromise;
         if (this.page.canSave()) {
@@ -199,7 +215,7 @@ export abstract class HypermediaInputService extends IInputService {
 
     protected async setData(data: any) {
         var savedResult = await this.page.save(data);
-        if (savedResult.canNext()) {
+        if (IsNextResult(savedResult) && savedResult.canNext()) {
             var next = savedResult.next();
             this.setPage(next);
         }
