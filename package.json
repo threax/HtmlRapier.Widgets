@@ -3,12 +3,9 @@
   "version": "3.8.10",
   "private": false,
   "dependencies": {
-    "htmlrapier": "^3.8.0",
-    "htmlrapier.bootstrap": "^3.2.0",
-    "htmlrapier.json-editor": "^3.2.1",
-    "htmlrapier.halcyon": "^3.3.4"
-  },
-  "devDependencies": {
-    "threax-gulp-tk": "^4.0.0"
+    "htmlrapier": "^4.0.0",
+    "htmlrapier.bootstrap": "^4.0.0",
+    "htmlrapier.json-editor": "^4.0.0",
+    "htmlrapier.halcyon": "^4.0.0"
   }
 }
