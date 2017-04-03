@@ -167,6 +167,9 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                         }
                     }
                 }
+
+                //remove min length
+                delete prop.minLength;
             }
         }
 
