@@ -137,7 +137,13 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                 var prop = properties[key];
                 //Convert ui type first
                 if (prop["x-ui-type"]) {
-                    prop.type = prop["x-ui-type"];
+                    if (prop["x-ui-type"] === "password") {
+                        prop.type = "string";
+                        prop.format = "password"
+                    }
+                    else {
+                        prop.type = prop["x-ui-type"];
+                    }
                 }
 
                 if (prop["x-values"]) {
