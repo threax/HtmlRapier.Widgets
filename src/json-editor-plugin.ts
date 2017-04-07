@@ -155,6 +155,11 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                     prop.enumSource = [source];
                 }
 
+                //Handle order
+                if (prop["x-ui-order"] !== undefined) {
+                    prop.propertyOrder = prop["x-ui-order"];
+                }
+
                 //Remove null options for types, not really using the ui that way
                 if (prop.type && typeId.isArray(prop.type)) {
                     var type: string[] = prop.type;
