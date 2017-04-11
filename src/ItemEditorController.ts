@@ -117,6 +117,10 @@ export class ItemEditorController<T> {
         this.toggle.off();
     }
 
+    protected show() {
+        this.toggle.on();
+    }
+
     protected activateMain() {
         this.lifecycle.showMain();
     }

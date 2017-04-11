@@ -8,11 +8,11 @@ import * as events from 'hr.eventdispatcher';
 import * as schema from 'hr.widgets.SchemaConverter';
 
 export class ShowItemEditorEventArgs {
-    data: any;
+    dataPromise: Promise<any>;
     update: itemEditor.ItemUpdatedCallback<any>
 
-    constructor(data: any, update: itemEditor.ItemUpdatedCallback<any>) {
-        this.data = data;
+    constructor(dataPromise: Promise<any>, update: itemEditor.ItemUpdatedCallback<any>) {
+        this.dataPromise = dataPromise;
         this.update = update;
     }
 }
@@ -96,9 +96,21 @@ export class CrudItemEditorController extends itemEditor.ItemEditorController<an
         super(bindings, settings);
         this.schemaConverter = schemaConverter;
         crudService.showItemEditorEvent.add(arg => {
-            this.editData(arg.data, arg.update);
+            this.showItemEditorHandler(arg);
         });
         this.setup(crudService);
+    }
+
+    private async showItemEditorHandler(arg: ShowItemEditorEventArgs) {
+        try {
+            this.show();
+            this.activateLoad();
+            var data = await arg.dataPromise;
+            this.editData(data, arg.update);
+        }
+        catch (err) {
+            this.activateError(err);
+        }
     }
 
     private async setup(crudService: ICrudService) {
@@ -480,7 +492,7 @@ export abstract class HypermediaCrudService extends ICrudService {
         this.fireShowItemEditorEvent(new ShowItemEditorEventArgs(data, a => this.finishEdit(a, item)));
     }
 
-    protected getEditObject(item: HypermediaCrudDataResult) {
+    protected async getEditObject(item: HypermediaCrudDataResult) {
         return item.data;
     }
 
