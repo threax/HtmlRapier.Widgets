@@ -1,6 +1,7 @@
 import * as controller from 'hr.controller';
 import { ListingDisplayController, ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
 import { IConfirm, BrowserConfirm } from 'hr.widgets.confirm';
+import { IAlert, BrowserAlert } from 'hr.widgets.alert';
 import * as pageWidget from 'hr.widgets.PageNumberWidget';
 export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
 import * as itemEditor from 'hr.widgets.ItemEditorController';
@@ -45,7 +46,7 @@ export abstract class ICrudService {
 
     public abstract getDeletePrompt(item: any): string;
 
-    public abstract async del(item: any);
+    public abstract async del(item: any) : Promise<any>;
 
     public abstract canDel(item: any): boolean;
 
@@ -127,17 +128,19 @@ export class CrudItemEditorController extends itemEditor.ItemEditorController<an
 
 export class CrudTableRowController {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, IConfirm, ICrudService, controller.InjectControllerData];
+        return [controller.BindingCollection, IConfirm, ICrudService, IAlert, controller.InjectControllerData];
     }
 
     private data: any;
     private crudService: ICrudService;
     private confirm: IConfirm;
+    private alert: IAlert;
 
-    constructor(bindings: controller.BindingCollection, confirm: IConfirm, crudService: ICrudService, data: any) {
+    constructor(bindings: controller.BindingCollection, confirm: IConfirm, crudService: ICrudService, alert: IAlert, data: any) {
         this.data = data;
         this.crudService = crudService;
         this.confirm = confirm;
+        this.alert = alert;
 
         if (!this.crudService.canEdit(data)) {
             var editToggle = bindings.getToggle("edit");
@@ -158,7 +161,17 @@ export class CrudTableRowController {
     public async del(evt: Event) {
         evt.preventDefault();
         if (await this.confirm.confirm(this.crudService.getDeletePrompt(this.data))) {
-            this.crudService.del(this.data);
+            try {
+                await this.crudService.del(this.data);
+            }
+            catch (err) {
+                var message = "An error occured deleting data.";
+                if (err.message) {
+                    message += " Message: " + err.message;
+                }
+                console.log(message);
+                this.alert.alert(message);
+            }
         }
     }
 }
@@ -653,6 +666,7 @@ export function AddServices(services: controller.ServiceCollection) {
     services.tryAddSingletonInstance(ListingDisplayOptions, new ListingDisplayOptions());
     services.tryAddTransient(CrudTableRowController, CrudTableRowController);
     services.tryAddSingleton(IConfirm, s => new BrowserConfirm());
+    services.tryAddSingleton(IAlert, s => new BrowserAlert());
     services.tryAddSingleton(CrudItemEditorController, CrudItemEditorController);
     services.tryAddScoped(CrudPageNumbers, CrudPageNumbers);
     services.tryAddScoped(CrudSearch, CrudSearch);
