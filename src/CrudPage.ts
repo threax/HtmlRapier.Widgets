@@ -502,7 +502,11 @@ export abstract class HypermediaCrudService extends ICrudService {
 
     public async edit(item: HypermediaCrudDataResult) {
         var data = this.getEditObject(item);
-        this.fireShowItemEditorEvent(new ShowItemEditorEventArgs(data, a => this.finishEdit(a, item)));
+        this.editData(item, data);
+    }
+
+    public editData(item: HypermediaCrudDataResult, dataPromise: Promise<any>) {
+        this.fireShowItemEditorEvent(new ShowItemEditorEventArgs(dataPromise, a => this.finishEdit(a, item)));
     }
 
     protected async getEditObject(item: HypermediaCrudDataResult) {

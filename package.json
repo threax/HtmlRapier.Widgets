@@ -1,6 +1,6 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "4.0.5",
+  "version": "4.0.6",
   "private": false,
   "dependencies": {
     "htmlrapier": "^4.0.0",
