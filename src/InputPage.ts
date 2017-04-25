@@ -232,6 +232,6 @@ export abstract class HypermediaInputService extends IInputService {
  */
 export function AddServices(services: controller.ServiceCollection) {
     itemEditor.AddServices(services);
-    services.tryAddScoped(InputItemEditorController, InputItemEditorController);
-    services.tryAddScoped(InputPagesController, InputPagesController);
+    services.tryAddTransient(InputItemEditorController, InputItemEditorController);
+    services.tryAddTransient(InputPagesController, InputPagesController);
 }

@@ -186,5 +186,5 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
  * Setup the services to use the json editor schema converter.
  */
 export function AddServices(services: controller.ServiceCollection) {
-    services.tryAddScoped(schema.ISchemaConverter, JsonEditorSchemaConverter);
+    services.tryAddTransient(schema.ISchemaConverter, JsonEditorSchemaConverter);
 }

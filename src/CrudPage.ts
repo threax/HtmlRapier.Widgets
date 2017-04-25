@@ -666,15 +666,15 @@ export abstract class HypermediaCrudService extends ICrudService {
  */
 export function AddServices(services: controller.ServiceCollection) {
     itemEditor.AddServices(services);
-    services.tryAddScoped(CrudTableController, CrudTableController);
-    services.tryAddSingletonInstance(ListingDisplayOptions, new ListingDisplayOptions());
+    services.tryAddTransient(CrudTableController, CrudTableController);
+    services.tryAddSharedInstance(ListingDisplayOptions, new ListingDisplayOptions());
     services.tryAddTransient(CrudTableRowController, CrudTableRowController);
-    services.tryAddSingleton(IConfirm, s => new BrowserConfirm());
-    services.tryAddSingleton(IAlert, s => new BrowserAlert());
-    services.tryAddSingleton(CrudItemEditorController, CrudItemEditorController);
-    services.tryAddScoped(CrudPageNumbers, CrudPageNumbers);
-    services.tryAddScoped(CrudSearch, CrudSearch);
-    services.tryAddSingleton(CrudQueryManager, s => {
+    services.tryAddShared(IConfirm, s => new BrowserConfirm());
+    services.tryAddShared(IAlert, s => new BrowserAlert());
+    services.tryAddShared(CrudItemEditorController, CrudItemEditorController);
+    services.tryAddTransient(CrudPageNumbers, CrudPageNumbers);
+    services.tryAddTransient(CrudSearch, CrudSearch);
+    services.tryAddShared(CrudQueryManager, s => {
         return new CrudQueryManager();
     });
 }
