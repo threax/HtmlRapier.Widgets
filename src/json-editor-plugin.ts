@@ -141,6 +141,10 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                         prop.type = "string";
                         prop.format = "password"
                     }
+                    else if (prop["x-ui-type"] === "hidden") {
+                        prop.options = prop.options || {};
+                        prop.options.hidden = true;
+                    }
                     else {
                         prop.type = prop["x-ui-type"];
                     }
