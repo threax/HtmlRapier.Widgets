@@ -1,11 +1,11 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "private": false,
   "dependencies": {
-    "htmlrapier": "^5.0.0",
-    "htmlrapier.bootstrap": "^4.0.0",
-    "htmlrapier.json-editor": "^4.0.0",
-    "htmlrapier.halcyon": "^4.0.0"
+    "htmlrapier": "^5.0.2",
+    "htmlrapier.bootstrap": "^4.1.0",
+    "htmlrapier.json-editor": "^4.1.0",
+    "htmlrapier.halcyon": "^4.0.2"
   }
 }

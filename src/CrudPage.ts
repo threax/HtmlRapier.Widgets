@@ -46,11 +46,11 @@ export abstract class ICrudService {
 
     public abstract getDeletePrompt(item: any): string;
 
-    public abstract async del(item: any) : Promise<any>;
+    public abstract async del(item: any): Promise<any>;
 
     public abstract canDel(item: any): boolean;
 
-    public abstract getPage(query: any): void;
+    public abstract getPage(query: any): Promise<any>;
 
     public abstract firstPage(): void;
 
@@ -390,10 +390,13 @@ export class CrudTableController extends ListingDisplayController<any> {
         this.queryManager = queryManager;
         this.crudService = crudService;
         this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
+        this.setup(bindings, queryManager);
+    }
 
-        this.crudService.getPage(queryManager.setupQuery());
+    private async setup(bindings: controller.BindingCollection, queryManager: CrudQueryManager) {
+        await this.crudService.getPage(queryManager.setupQuery());
 
-        this.crudService.canAdd()
+        await this.crudService.canAdd()
             .then(r => {
                 if (!r) {
                     var addToggle = bindings.getToggle("add");
@@ -528,7 +531,9 @@ export abstract class HypermediaCrudService extends ICrudService {
     protected abstract commitDelete(item: HypermediaCrudDataResult): Promise<any>;
 
     public getPage(query: any) {
-        this.fireDataLoadingEvent(new DataLoadingEventArgs(this.getPageAsync(query)));
+        var loadingPromise = this.getPageAsync(query);
+        this.fireDataLoadingEvent(new DataLoadingEventArgs(loadingPromise));
+        return loadingPromise;
     }
 
     private async getPageAsync(query: any) {
