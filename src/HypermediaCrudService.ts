@@ -33,6 +33,9 @@ export interface HypermediaCrudCollection {
     refresh();
     canRefresh();
 
+    hasListDocs(): boolean;
+    getListDocs(): Promise<any>;
+
     previous();
     canPrevious();
 
@@ -65,6 +68,15 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (this.currentPage.hasAddDocs()) {
             var docs = await this.currentPage.getAddDocs();
             return docs.requestSchema;
+        }
+    }
+
+    public async getSearchSchema() {
+        //This ensures that we don't return an item schema until at least one page is loaded.
+        await this.initialPageLoadPromise.Promise;
+        if (this.currentPage.hasListDocs()) {
+            var docs = await this.currentPage.getListDocs();
+            return docs.querySchema;
         }
     }
 

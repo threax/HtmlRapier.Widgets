@@ -59,7 +59,7 @@ export class ItemEditorController<T> {
             settings.setLoadingOnStart);
     }
 
-    protected setSchema(schema) {
+    public setSchema(schema) {
         if (this.formModel) {
             this.formModel.replaceSchema(schema);
         }
@@ -100,7 +100,7 @@ export class ItemEditorController<T> {
     public submit(evt) {
         evt.preventDefault();
         this.lifecycle.showLoad();
-        var data = this.formModel.getData();
+        var data = this.currentData;
         this.updated(data)
             .then(r => {
                 this.toggle.off();
@@ -110,6 +110,13 @@ export class ItemEditorController<T> {
                 this.formModel.onChange();
                 this.lifecycle.showMain();
             });
+    }
+
+    public get currentData(): T {
+        if (this.formModel) {
+            return this.formModel.getData();
+        }
+        return null;
     }
 
     public cancel(evt) {
@@ -165,7 +172,7 @@ export class ItemEditorController<T> {
         return defaultError;
     }
 
-    private isValidationError(test: Error): test is ValidationError{
+    private isValidationError(test: Error): test is ValidationError {
         return (<ValidationError>test).getValidationError !== undefined;
     }
 

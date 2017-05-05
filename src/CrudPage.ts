@@ -7,6 +7,7 @@ export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
 import * as itemEditor from 'hr.widgets.ItemEditorController';
 import * as events from 'hr.eventdispatcher';
 import * as schema from 'hr.widgets.SchemaConverter';
+import * as jsonEditor from 'hr.widgets.json-editor-plugin';
 
 export class ShowItemEditorEventArgs {
     dataPromise: Promise<any>;
@@ -35,6 +36,8 @@ export abstract class ICrudService {
     private dataLoadingDispatcher = new events.ActionEventDispatcher<DataLoadingEventArgs>();
 
     public abstract async getItemSchema(): Promise<any>;
+
+    public abstract async getSearchSchema(): Promise<any>;
 
     public abstract async add(item?: any);
 
@@ -318,52 +321,70 @@ export class CrudPageNumbers extends ICrudQueryComponent {
     }
 }
 
-export interface SearchQuery {
-    term: string;
-}
-
-export interface CrudSearchModel {
-    term: string;
+export class CrudSearchSettings {
+    editorHolderHandle: string = "editorHolder";
 }
 
 export class CrudSearch extends ICrudQueryComponent {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, ICrudService, CrudQueryManager];
+        return [controller.BindingCollection, ICrudService, CrudQueryManager, CrudSearchSettings, schema.ISchemaConverter];
     }
 
+    private formModel: jsonEditor.JsonEditorModel<any> = null;
     private queryManager: CrudQueryManager;
     private crudService: ICrudService;
-    private searchModel: controller.Model<CrudSearchModel>;
+    private editorHandle;
+    private itemEditor: itemEditor.ItemEditorController<any>;
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager) {
+    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager, settings: CrudSearchSettings, private schemaConverter: schema.ISchemaConverter) {
         super();
         this.crudService = crudService;
         this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
         this.queryManager = queryManager;
         this.queryManager.addComponent(this);
-        this.searchModel = bindings.getModel<CrudSearchModel>("search");
+        this.editorHandle = bindings.getHandle(settings.editorHolderHandle);
+        this.itemEditor = new itemEditor.ItemEditorController(bindings, new itemEditor.ItemEditorSettings());
+        this.setup(bindings, crudService, settings);
     }
 
-    public setupQuery(query: SearchQuery): void {
-        var searchQuery = this.searchModel.getData();
-        if (searchQuery.term !== undefined && searchQuery.term !== null && searchQuery.term !== "") {
-            query.term = searchQuery.term;
+    private async setup(bindings: controller.BindingCollection, crudService: ICrudService, settings: CrudSearchSettings) {
+        var schema: any = await crudService.getSearchSchema();
+        schema.title = "Search"; //Set title to search
+
+        //Look for x-ui-search properties that are true
+        var properties = schema.properties;
+        if (properties) {
+            for (var key in properties) {
+                var prop = properties[key];
+                if (prop["x-ui-search"] !== true) {
+                    delete properties[key]; //Delete all properties that do not have x-ui-search set.
+                }
+            }
+        }
+
+        this.itemEditor.setSchema(this.schemaConverter.convert(schema));
+    }
+
+    public setupQuery(query: any): void {
+        if (this.itemEditor) {
+            var searchQuery = this.itemEditor.currentData;
+            if (searchQuery !== null) {
+                for (var key in searchQuery) {
+                    if (query[key] === undefined) {
+                        query[key] = searchQuery[key];
+                    }
+                }
+            }
         }
     }
 
-    public runSearch(evt: Event) {
+    public submit(evt: Event) {
         evt.preventDefault();
         this.crudService.getPage(this.queryManager.setupQuery());
     }
 
     public setData(pageData: any): void {
-        var model: CrudSearchModel = {
-            term: pageData.data.term
-        };
-        if (model.term === undefined || model.term === null) {
-            model.term = "";
-        }
-        this.searchModel.setData(model);
+        this.itemEditor.editData(pageData.data, () => Promise.resolve(0));
     }
 
     private async handlePageLoad(promise: Promise<any>) {
@@ -480,6 +501,14 @@ export abstract class HypermediaCrudService extends ICrudService {
     }
 
     protected abstract getActualSchema(entryPoint): Promise<any>;
+
+    public async getSearchSchema() {
+        var entryPoint = await this.entry.load();
+        var docs = await this.getActualSearchSchema(entryPoint);
+        return docs.requestSchema;
+    }
+
+    protected abstract getActualSearchSchema(entryPoint): Promise<any>;
 
     public async add(item?: any) {
         if (item === undefined) {
@@ -678,6 +707,7 @@ export function AddServices(services: controller.ServiceCollection) {
     services.tryAddShared(IAlert, s => new BrowserAlert());
     services.tryAddShared(CrudItemEditorController, CrudItemEditorController);
     services.tryAddTransient(CrudPageNumbers, CrudPageNumbers);
+    services.tryAddShared(CrudSearchSettings, s => new CrudSearchSettings());
     services.tryAddTransient(CrudSearch, CrudSearch);
     services.tryAddShared(CrudQueryManager, s => {
         return new CrudQueryManager();
