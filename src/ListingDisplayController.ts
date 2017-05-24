@@ -12,10 +12,6 @@ export class ListingDisplayOptions {
 export type ListingItemCreatedCallback<T> = (bindings: controller.BindingCollection, data: T) => void;
 
 export class ListingDisplayController<T> {
-    public static Builder<T>(options: ListingDisplayOptions) {
-        return new controller.ControllerBuilder<ListingDisplayController<T>, ListingDisplayOptions, void>(ListingDisplayController, options);
-    }
-
     private listingModel: controller.Model<any>;
     private lifecycle: MainLoadErrorLifecycle;
 

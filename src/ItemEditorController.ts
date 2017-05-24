@@ -34,10 +34,6 @@ interface DataToEdit {
 var defaultError = { path: null };
 
 export class ItemEditorController<T> {
-    public static Builder<T>(settings: ItemEditorSettings<T>) {
-        return new controller.ControllerBuilder<ItemEditorController<T>, ItemEditorSettings<T>, void>(ItemEditorController, settings);
-    }
-
     private formModel: jsonEditor.JsonEditorModel<T> = null;
     private currentError: Error = null;
     private toggle;
