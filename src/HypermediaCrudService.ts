@@ -12,23 +12,31 @@ export abstract class HypermediaPageInjector {
 
 export interface HypermediaCrudDataResult {
     data: any;
+}
 
+export interface HypermediaUpdatableResult extends HypermediaCrudDataResult {
     update(data: any): Promise<any>;
     canUpdate(): boolean;
+}
 
+export interface HypermediaDeleteableResult extends HypermediaCrudDataResult {
     delete(): Promise<void>;
     canDelete(): boolean;
+}
+
+export function IsHypermediaUpdatableResult(i: HypermediaCrudDataResult): i is HypermediaUpdatableResult {
+    return (<HypermediaUpdatableResult>i).update !== undefined
+        && (<HypermediaUpdatableResult>i).canUpdate !== undefined;
+}
+
+export function IsHypermediaDeleteableResult(i: HypermediaCrudDataResult): i is HypermediaDeleteableResult {
+    return (<HypermediaDeleteableResult>i).delete !== undefined
+        && (<HypermediaDeleteableResult>i).canDelete !== undefined;
 }
 
 export interface HypermediaCrudCollection {
     data: pageWidget.OffsetLimitTotal;
     items: any;
-
-    hasAddDocs(): boolean;
-    getAddDocs(): Promise<any>;
-
-    add(data: any): Promise<any>;
-    canAdd(): boolean;
 
     refresh();
     canRefresh();
@@ -49,6 +57,21 @@ export interface HypermediaCrudCollection {
     canLast();
 }
 
+export interface AddableCrudCollection extends HypermediaCrudCollection {
+    hasAddDocs(): boolean;
+    getAddDocs(): Promise<any>;
+
+    add(data: any): Promise<any>;
+    canAdd(): boolean;
+}
+
+export function IsAddableCrudCollection(i: HypermediaCrudCollection): i is AddableCrudCollection {
+    return (<AddableCrudCollection>i).hasAddDocs !== undefined
+        && (<AddableCrudCollection>i).getAddDocs !== undefined
+        && (<AddableCrudCollection>i).add !== undefined
+        && (<AddableCrudCollection>i).canAdd !== undefined;
+}
+
 export class HypermediaCrudService extends crudPage.ICrudService {
     public static get InjectorArgs(): di.DiFunction<any>[] {
         return [HypermediaPageInjector];
@@ -65,9 +88,13 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     public async getItemSchema() {
         //This ensures that we don't return an item schema until at least one page is loaded.
         await this.initialPageLoadPromise.Promise;
-        if (this.currentPage.hasAddDocs()) {
-            var docs = await this.currentPage.getAddDocs();
-            return docs.requestSchema;
+
+        //Now check current page and see if we can add stuff.
+        if (IsAddableCrudCollection(this.currentPage)) {
+            if (this.currentPage.hasAddDocs()) {
+                var docs = await this.currentPage.getAddDocs();
+                return docs.requestSchema;
+            }
         }
     }
 
@@ -88,12 +115,14 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     }
 
     private async finishAdd(data) {
-        await this.currentPage.add(data);
-        this.refreshPage();
+        if (IsAddableCrudCollection(this.currentPage)) {
+            await this.currentPage.add(data);
+            this.refreshPage();
+        }
     }
 
     public async canAdd() {
-        return this.currentPage.canAdd();
+        return IsAddableCrudCollection(this.currentPage) && this.currentPage.canAdd();
     }
 
     public async edit(item: HypermediaCrudDataResult) {
@@ -102,7 +131,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     }
 
     public canEdit(item: HypermediaCrudDataResult): boolean {
-        return item.canUpdate();
+        return IsHypermediaUpdatableResult(item) && item.canUpdate();
     }
 
     public editData(item: HypermediaCrudDataResult, dataPromise: Promise<any>) {
@@ -114,17 +143,21 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     }
 
     private async finishEdit(data, item: HypermediaCrudDataResult) {
-        await item.update(data);
-        this.refreshPage();
+        if (IsHypermediaUpdatableResult(item)) {
+            await item.update(data);
+            this.refreshPage();
+        }
     }
 
     public async del(item: HypermediaCrudDataResult) {
-        await item.delete();
-        this.refreshPage();
+        if (IsHypermediaDeleteableResult(item)) {
+            await item.delete();
+            this.refreshPage();
+        }
     }
 
     public canDel(item: HypermediaCrudDataResult): boolean {
-        return item.canDelete();
+        return IsHypermediaDeleteableResult(item) && item.canDelete();
     }
 
     public getDeletePrompt(item: HypermediaCrudDataResult): string {
