@@ -41,9 +41,6 @@ export interface HypermediaCrudCollection {
     refresh();
     canRefresh();
 
-    hasListDocs(): boolean;
-    getListDocs(): Promise<any>;
-
     previous();
     canPrevious();
 
@@ -70,6 +67,16 @@ export function IsAddableCrudCollection(i: HypermediaCrudCollection): i is Addab
         && (<AddableCrudCollection>i).getAddDocs !== undefined
         && (<AddableCrudCollection>i).add !== undefined
         && (<AddableCrudCollection>i).canAdd !== undefined;
+}
+
+export interface SearchableCrudCollection extends HypermediaCrudCollection {
+    hasListDocs(): boolean;
+    getListDocs(): Promise<any>;
+}
+
+export function IsSearchableCrudCollection(i: HypermediaCrudCollection): i is SearchableCrudCollection {
+    return (<SearchableCrudCollection>i).hasListDocs !== undefined
+        && (<SearchableCrudCollection>i).getListDocs !== undefined;
 }
 
 export class HypermediaCrudService extends crudPage.ICrudService {
@@ -101,7 +108,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     public async getSearchSchema() {
         //This ensures that we don't return an item schema until at least one page is loaded.
         await this.initialPageLoadPromise.Promise;
-        if (this.currentPage.hasListDocs()) {
+        if (IsSearchableCrudCollection(this.currentPage) && this.currentPage.hasListDocs()) {
             var docs = await this.currentPage.getListDocs();
             return docs.querySchema;
         }
