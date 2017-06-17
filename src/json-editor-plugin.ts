@@ -80,6 +80,11 @@ class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
         this.options.schema = schema;
         this.editor = new JSONEditor(this.element, this.options);
     }
+
+    public setPrototype(proto: T): void {
+        //This is considered handled by the schema including hidden
+        //properties for anything that is not edited.
+    }
 }
 
 /**
@@ -98,6 +103,10 @@ class JsonEditorTypedModel<T> extends models.StrongTypedModel<T> implements Json
 
     replaceSchema(schema) {
         this.childModel.replaceSchema(schema);
+    }
+
+    public setPrototype(proto: T): void {
+        //Done nothing since this uses classes
     }
 }
 

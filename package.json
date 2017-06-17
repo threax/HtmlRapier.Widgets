@@ -1,11 +1,14 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "5.3.1",
+  "version": "6.0.0",
   "private": false,
   "dependencies": {
-    "htmlrapier": ">=5.2.0",
+    "htmlrapier": ">=7.0.0",
     "htmlrapier.bootstrap": ">=4.1.0",
     "htmlrapier.json-editor": ">=4.1.0",
     "htmlrapier.halcyon": ">=4.0.2"
+  },
+  "scripts": {
+    "yarn-install": "yarn install --flat"
   }
 }
