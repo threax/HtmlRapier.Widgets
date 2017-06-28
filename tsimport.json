@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "hr.widgets.*": [
+        "src/*"
+      ]
+    }
+  },
+  "include": [
+    "src\\**\\*.ts"
+  ]
+}
