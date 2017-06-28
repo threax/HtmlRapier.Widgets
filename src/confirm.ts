@@ -9,7 +9,7 @@ export abstract class IConfirm{
  * so it matches the other prompt interfaces.
  */
 export class BrowserConfirm implements IConfirm {
-    confirm(message:string) {
+    confirm(message:string): Promise<boolean> {
         return new Promise(function (resovle, reject) {
             if (window.confirm(message)) {
                 resovle(true);

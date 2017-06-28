@@ -3,12 +3,15 @@
   "version": "6.0.0",
   "private": false,
   "dependencies": {
-    "htmlrapier": ">=7.0.0",
-    "htmlrapier.bootstrap": ">=4.1.0",
-    "htmlrapier.json-editor": ">=4.1.0",
-    "htmlrapier.halcyon": ">=4.0.2"
+    "htmlrapier": ">=8.0.2",
+    "htmlrapier.bootstrap": ">=4.2.1",
+    "htmlrapier.halcyon": ">=6.0.0",
+    "htmlrapier.json-editor": ">=4.2.0"
   },
   "scripts": {
     "yarn-install": "yarn install --flat"
+  },
+  "resolutions": {
+    "htmlrapier": "8.0.2"
   }
 }
