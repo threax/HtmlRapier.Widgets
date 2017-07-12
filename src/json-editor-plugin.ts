@@ -128,6 +128,11 @@ export function create<T>(element: HTMLElement, options?:JsonEditorModelOptions<
     return model;
 }
 
+interface IXValues {
+    label: string;
+    value: string;
+}
+
 class JsonEditorSchemaConverter extends schema.ISchemaConverter {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
         return [];
@@ -160,12 +165,31 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                 }
 
                 if (prop["x-values"]) {
-                    var source = {
-                        source: prop["x-values"],
-                        title: "{{item.label}}",
-                        value: "{{item.value}}"
+                    if (prop.type === 'array') {
+                        var xValues: IXValues[] = prop["x-values"];
+                        prop.uniqueItems = true;
+                        var values = [];
+                        var titles = [];
+                        for (var i = 0; i < xValues.length; ++i) {
+                            var current = xValues[i];
+                            values.push(current.value);
+                            titles.push(current.label);
+                        }
+                        prop.items.enum = values;
+                        if (prop.items.options === undefined) {
+                            prop.items.options = {};
+                        }
+                        prop.items.options.enum_titles = titles;
+                        prop.format = "checkbox";
                     }
-                    prop.enumSource = [source];
+                    else {
+                        var source = {
+                            source: prop["x-values"],
+                            title: "{{item.label}}",
+                            value: "{{item.value}}"
+                        }
+                        prop.enumSource = [source];
+                    }
                 }
 
                 //Handle order
