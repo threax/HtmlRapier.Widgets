@@ -149,22 +149,9 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
         if (properties) {
             for (var key in properties) {
                 var prop = properties[key];
+                var deriveUiType = true;
                 //Convert ui type first
-                if (prop["x-ui-type"]) {
-                    if (prop["x-ui-type"] === "password") {
-                        prop.type = "string";
-                        prop.format = "password"
-                    }
-                    else if (prop["x-ui-type"] === "hidden") {
-                        prop.options = prop.options || {};
-                        prop.options.hidden = true;
-                    }
-                    else {
-                        prop.type = prop["x-ui-type"];
-                    }
-                }
-
-                if (prop["x-values"]) {
+                if (prop["x-values"]) { //Start by seeing if this is a multiselect or select box.
                     if (prop.type === 'array') {
                         var xValues: IXValues[] = prop["x-values"];
                         prop.uniqueItems = true;
@@ -181,12 +168,14 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                         }
                         prop.items.options.enum_titles = titles;
 
+                        //Custom ui types, handled here so disable further derivation 
                         if (prop["x-ui-type"] === "checkbox") {
                             prop.format = "checkbox";
                         }
                         else if (prop["x-ui-type"] === "select") {
                             prop.format = "select";
                         }
+                        deriveUiType = false;
                     }
                     else {
                         var source = {
@@ -195,6 +184,20 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                             value: "{{item.value}}"
                         }
                         prop.enumSource = [source];
+                    }
+                }
+
+                if (deriveUiType && prop["x-ui-type"]) {
+                    if (prop["x-ui-type"] === "password") {
+                        prop.type = "string";
+                        prop.format = "password"
+                    }
+                    else if (prop["x-ui-type"] === "hidden") {
+                        prop.options = prop.options || {};
+                        prop.options.hidden = true;
+                    }
+                    else {
+                        prop.type = prop["x-ui-type"];
                     }
                 }
 
