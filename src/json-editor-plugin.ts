@@ -180,7 +180,13 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                             prop.items.options = {};
                         }
                         prop.items.options.enum_titles = titles;
-                        prop.format = "checkbox";
+
+                        if (prop["x-ui-type"] === "checkbox") {
+                            prop.format = "checkbox";
+                        }
+                        else if (prop["x-ui-type"] === "select") {
+                            prop.format = "select";
+                        }
                     }
                     else {
                         var source = {
