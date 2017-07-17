@@ -205,6 +205,9 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                 if (prop["x-ui-order"] !== undefined) {
                     prop.propertyOrder = prop["x-ui-order"];
                 }
+                else if(schema.definitions !== undefined && schema.definitions[key] !== undefined && schema.definitions[key]["x-ui-order"] !== undefined){
+                    prop.propertyOrder = schema.definitions[key]["x-ui-order"];
+                }
 
                 //Remove null options for types, not really using the ui that way
                 if (prop.type && typeId.isArray(prop.type)) {
