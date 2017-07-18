@@ -27,7 +27,7 @@ JSONEditor.defaults.resolvers.unshift(function (schema) {
 /**
  * A custom model for json editor instances. Gives access to the wrapped editor.
  */
-export interface JsonEditorModel<T> extends models.Model<T>{
+export interface JsonEditorModel<T> extends models.Model<T> {
     /**
      * Call the editor's onChange function.
      */
@@ -47,13 +47,13 @@ class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
     private element: HTMLElement;
     private options: JsonEditorModelOptions<T>;
 
-    constructor(element: HTMLElement, options: JsonEditorModelOptions<T>){
+    constructor(element: HTMLElement, options: JsonEditorModelOptions<T>) {
         this.editor = new JSONEditor(element, options);
         this.element = element;
         this.options = options;
     }
 
-    setData(data:T) {
+    setData(data: T) {
         this.editor.root.setValue(data, true);
     }
 
@@ -63,7 +63,7 @@ class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
         this.editor.root.setValue(null, true);
     }
 
-    getData():T {
+    getData(): T {
         return this.editor.getValue();
     }
 
@@ -113,16 +113,16 @@ class JsonEditorTypedModel<T> extends models.StrongTypedModel<T> implements Json
 /**
  * The options for the Json Editor Model. Also provides the options for the Json Editor the model will wrap.
  */
-export interface JsonEditorModelOptions<T> extends JSONEditorOptions{
+export interface JsonEditorModelOptions<T> extends JSONEditorOptions {
     strongConstructor?: models.StrongTypeConstructor<T>;
 }
 
 /**
  * Helper function to create the right model depending on your settings.
  */
-export function create<T>(element: HTMLElement, options?:JsonEditorModelOptions<T>): JsonEditorModel<T> {
-    var model:JsonEditorModel<T> = new ConcreteJsonEditorModel<T>(element, options)
-    if(options !== undefined && options.strongConstructor !== undefined){
+export function create<T>(element: HTMLElement, options?: JsonEditorModelOptions<T>): JsonEditorModel<T> {
+    var model: JsonEditorModel<T> = new ConcreteJsonEditorModel<T>(element, options)
+    if (options !== undefined && options.strongConstructor !== undefined) {
         model = new JsonEditorTypedModel<T>(model, options.strongConstructor);
     }
     return model;
@@ -150,23 +150,23 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
             for (var key in properties) {
                 var prop = properties[key];
                 var deriveUiType = true;
-                //Convert ui type first
-                if (prop["x-values"]) { //Start by seeing if this is a multiselect or select box.
-                    if (prop.type === 'array') {
-                        var xValues: IXValues[] = prop["x-values"];
+                //Handle enums
+                if (prop["x-values"]) {
+                    var xValues: IXValues[] = prop["x-values"];
+                    var values = [];
+                    var titles = [];
+                    for (var i = 0; i < xValues.length; ++i) {
+                        var current = xValues[i];
+                        values.push(current.value);
+                        titles.push(current.label);
+                    }
+
+                    var enumStorageTarget = prop;
+
+                    //See if this is a multiselect or select box.
+                    if (prop.type === 'array' || (Array.isArray(prop.type) && prop.type.indexOf("array") !== -1)) {
                         prop.uniqueItems = true;
-                        var values = [];
-                        var titles = [];
-                        for (var i = 0; i < xValues.length; ++i) {
-                            var current = xValues[i];
-                            values.push(current.value);
-                            titles.push(current.label);
-                        }
-                        prop.items.enum = values;
-                        if (prop.items.options === undefined) {
-                            prop.items.options = {};
-                        }
-                        prop.items.options.enum_titles = titles;
+                        enumStorageTarget = prop.items;
 
                         //Custom ui types, handled here so disable further derivation 
                         if (prop["x-ui-type"] === "checkbox") {
@@ -177,16 +177,15 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                         }
                         deriveUiType = false;
                     }
-                    else {
-                        var source = {
-                            source: prop["x-values"],
-                            title: "{{item.label}}",
-                            value: "{{item.value}}"
-                        }
-                        prop.enumSource = [source];
+
+                    enumStorageTarget.enum = values;
+                    if (enumStorageTarget.options === undefined) {
+                        enumStorageTarget.options = {};
                     }
+                    enumStorageTarget.options.enum_titles = titles;
                 }
 
+                //Convert ui type
                 if (deriveUiType && prop["x-ui-type"]) {
                     if (prop["x-ui-type"] === "password") {
                         prop.type = "string";
@@ -205,7 +204,7 @@ class JsonEditorSchemaConverter extends schema.ISchemaConverter {
                 if (prop["x-ui-order"] !== undefined) {
                     prop.propertyOrder = prop["x-ui-order"];
                 }
-                else if(schema.definitions !== undefined && schema.definitions[key] !== undefined && schema.definitions[key]["x-ui-order"] !== undefined){
+                else if (schema.definitions !== undefined && schema.definitions[key] !== undefined && schema.definitions[key]["x-ui-order"] !== undefined) {
                     prop.propertyOrder = schema.definitions[key]["x-ui-order"];
                 }
 
