@@ -118,7 +118,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (item === undefined) {
             item = {};
         }
-        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(item, a => this.finishAdd(a)));
+        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(item, a => this.finishAdd(a), this.currentPage));
     }
 
     private async finishAdd(data) {
@@ -142,7 +142,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     }
 
     public editData(item: HypermediaCrudDataResult, dataPromise: Promise<any>) {
-        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(dataPromise, a => this.finishEdit(a, item)));
+        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(dataPromise, a => this.finishEdit(a, item), item));
     }
 
     protected async getEditObject(item: HypermediaCrudDataResult) {

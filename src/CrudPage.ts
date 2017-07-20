@@ -10,12 +10,26 @@ import * as schema from 'hr.widgets.SchemaConverter';
 import * as jsonEditor from 'hr.widgets.json-editor-plugin';
 
 export class ShowItemEditorEventArgs {
+    /**
+     * A promise to get the data.
+     */
     dataPromise: Promise<any>;
-    update: itemEditor.ItemUpdatedCallback<any>
 
-    constructor(dataPromise: Promise<any>, update: itemEditor.ItemUpdatedCallback<any>) {
+    /**
+     * The function to call to update the data.
+     */
+    update: itemEditor.ItemUpdatedCallback<any>;
+
+    /**
+     * If the data came from another result this will have a value.
+     * What value this is depends on the crud service that fired the event.
+     */
+    dataResult: any;
+
+    constructor(dataPromise: Promise<any>, update: itemEditor.ItemUpdatedCallback<any>, dataResult?: any) {
         this.dataPromise = dataPromise;
         this.update = update;
+        this.dataResult = dataResult;
     }
 }
 
