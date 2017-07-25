@@ -1,8 +1,8 @@
 import * as controller from 'hr.controller';
-import * as itemEditor from 'hr.widgets.ItemEditorController';
 import * as events from 'hr.eventdispatcher';
-import * as schema from 'hr.widgets.SchemaConverter';
 import * as hal from 'hr.halcyon.EndpointClient';
+import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import * as form from 'hr.form';
 
 export class SetItemSchemaEventArgs {
     constructor(public schema: any) {
@@ -12,9 +12,9 @@ export class SetItemSchemaEventArgs {
 
 export class ShowItemEditorEventArgs {
     data: any;
-    update: itemEditor.ItemUpdatedCallback<any>
+    update: ItemUpdatedCallback
 
-    constructor(data: any, update: itemEditor.ItemUpdatedCallback<any>) {
+    constructor(data: any, update: ItemUpdatedCallback) {
         this.data = data;
         this.update = update;
     }
@@ -31,6 +31,8 @@ export class DataLoadingEventArgs {
         return this._dataPromise;
     }
 }
+
+export type ItemUpdatedCallback = (data: any) => Promise<any>;
 
 export abstract class IInputService {
     private showItemEditorDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
@@ -79,33 +81,41 @@ export abstract class IInputService {
     }
 }
 
-export class InputItemEditorController extends itemEditor.ItemEditorController<any>{
+export class InputItemEditorController {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, IInputService, schema.ISchemaConverter];
+        return [controller.BindingCollection, IInputService];
     }
 
-    private schemaConverter: schema.ISchemaConverter;
     private completeToggle: controller.OnOffToggle;
+    private lifecycle: MainLoadErrorLifecycle;
+    private form: controller.IForm<any>;
+    private update: ItemUpdatedCallback;
 
-    constructor(bindings: controller.BindingCollection, inputService: IInputService, schemaConverter: schema.ISchemaConverter) {
-        var settings = new itemEditor.ItemEditorSettings();
-        super(bindings, settings);
-        this.schemaConverter = schemaConverter;
+    constructor(bindings: controller.BindingCollection, inputService: IInputService) {
         this.completeToggle = bindings.getToggle("complete");
         this.completeToggle.off();
+        this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>("input"));
+
+        this.lifecycle = new MainLoadErrorLifecycle(
+            bindings.getToggle("main"),
+            bindings.getToggle("load"),
+            bindings.getToggle("error"),
+            true);
+
         inputService.dataLoading.add(arg => {
-            this.activateLoad();
+            this.lifecycle.showLoad();
         });
         inputService.showItemEditorEvent.add(arg => {
-            this.editData(arg.data, arg.update);
+            this.update = arg.update;
+            this.form.setData(arg.data);
+            this.lifecycle.showMain();
         });
         inputService.setItemSchema.add(arg => {
-            var schema = this.schemaConverter.convert(arg.schema);
-            this.setSchema(schema);
+            this.form.setSchema(arg.schema);
         });
         inputService.inputCompleted.add(() => {
-            this.setSchema({});
-            this.activateOtherToggle(this.completeToggle);
+            //this.setSchema({});
+            this.lifecycle.showOther(this.completeToggle);
         });
     }
 }
@@ -231,7 +241,6 @@ export abstract class HypermediaInputService extends IInputService {
  * @param services
  */
 export function AddServices(services: controller.ServiceCollection) {
-    itemEditor.AddServices(services);
     services.tryAddTransient(InputItemEditorController, InputItemEditorController);
     services.tryAddTransient(InputPagesController, InputPagesController);
 }

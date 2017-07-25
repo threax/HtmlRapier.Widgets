@@ -4,10 +4,9 @@ import { IConfirm, BrowserConfirm } from 'hr.widgets.confirm';
 import { IAlert, BrowserAlert } from 'hr.widgets.alert';
 import * as pageWidget from 'hr.widgets.PageNumberWidget';
 export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
-import * as itemEditor from 'hr.widgets.ItemEditorController';
 import * as events from 'hr.eventdispatcher';
-import * as schema from 'hr.widgets.SchemaConverter';
-import * as jsonEditor from 'hr.widgets.json-editor-plugin';
+import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import * as form from 'hr.form';
 
 export class ShowItemEditorEventArgs {
     /**
@@ -18,7 +17,7 @@ export class ShowItemEditorEventArgs {
     /**
      * The function to call to update the data.
      */
-    update: itemEditor.ItemUpdatedCallback<any>;
+    update: ItemUpdatedCallback;
 
     /**
      * If the data came from another result this will have a value.
@@ -26,7 +25,7 @@ export class ShowItemEditorEventArgs {
      */
     dataResult: any;
 
-    constructor(dataPromise: Promise<any>, update: itemEditor.ItemUpdatedCallback<any>, dataResult?: any) {
+    constructor(dataPromise: Promise<any>, update: ItemUpdatedCallback, dataResult?: any) {
         this.dataPromise = dataPromise;
         this.update = update;
         this.dataResult = dataResult;
@@ -102,40 +101,75 @@ export abstract class ICrudService {
     }
 }
 
-export class CrudItemEditorController extends itemEditor.ItemEditorController<any>{
+export type ItemUpdatedCallback = (data: any) => Promise<any>;
+
+export class CrudItemEditorController{
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, ICrudService, schema.ISchemaConverter];
+        return [controller.BindingCollection, ICrudService];
     }
 
-    private schemaConverter: schema.ISchemaConverter;
+    private form: controller.IForm<any>;
+    private dialog: controller.OnOffToggle;
+    private lifecycle: MainLoadErrorLifecycle;
+    private updated: ItemUpdatedCallback;
+    private _autoClose: boolean = true;
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService, schemaConverter: schema.ISchemaConverter) {
-        var settings = new itemEditor.ItemEditorSettings();
-        super(bindings, settings);
-        this.schemaConverter = schemaConverter;
+    constructor(bindings: controller.BindingCollection, crudService: ICrudService) {
+        this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>("input"));
+        this.dialog = bindings.getToggle("dialog");
+        this.lifecycle = new MainLoadErrorLifecycle(
+            bindings.getToggle("main"),
+            bindings.getToggle("load"),
+            bindings.getToggle("error"),
+            true);
         crudService.showItemEditorEvent.add(arg => {
             this.showItemEditorHandler(arg);
         });
         this.setup(crudService);
     }
 
+    public async submit(evt: Event): Promise<void> {
+        evt.preventDefault();
+        try{
+            this.lifecycle.showLoad();
+            var data = this.form.getData();
+            await this.updated(data);
+            this.lifecycle.showMain();
+            if(this._autoClose){
+                this.dialog.off();
+            }
+        }
+        catch(err){
+            this.lifecycle.showError(err);
+        }
+    }
+
+    public get autoClose(): boolean{
+        return this._autoClose;
+    }
+
+    public set autoClose(value: boolean){
+        this._autoClose = value;
+    }
+
     private async showItemEditorHandler(arg: ShowItemEditorEventArgs) {
         try {
-            this.show();
-            this.activateLoad();
+            this.dialog.on();
+            this.lifecycle.showLoad();
             var data = await arg.dataPromise;
-            this.editData(data, arg.update);
+            this.updated = arg.update;
+            this.form.setData(data);
+            this.lifecycle.showMain();
         }
         catch (err) {
-            this.activateError(err);
+            this.lifecycle.showError(err);
         }
     }
 
     private async setup(crudService: ICrudService) {
         try {
             var schema = await crudService.getItemSchema();
-            schema = await this.schemaConverter.convert(schema);
-            this.setSchema(schema);
+            this.form.setSchema(schema);
         }
         catch (err) {
             console.log("An error occured loading the schema for the CrudItemEditor. Message: " + err.message);
@@ -335,36 +369,27 @@ export class CrudPageNumbers extends ICrudQueryComponent {
     }
 }
 
-export class CrudSearchSettings {
-    editorHolderHandle: string = "editorHolder";
-}
-
 export class CrudSearch extends ICrudQueryComponent {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, ICrudService, CrudQueryManager, CrudSearchSettings, schema.ISchemaConverter];
+        return [controller.BindingCollection, ICrudService, CrudQueryManager];
     }
 
-    private formModel: jsonEditor.JsonEditorModel<any> = null;
     private queryManager: CrudQueryManager;
     private crudService: ICrudService;
-    private editorHandle;
-    private itemEditor: itemEditor.ItemEditorController<any>;
+    private form: controller.IForm<any>;
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager, settings: CrudSearchSettings, private schemaConverter: schema.ISchemaConverter) {
+    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager) {
         super();
         this.crudService = crudService;
         this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
         this.queryManager = queryManager;
         this.queryManager.addComponent(this);
-        this.editorHandle = bindings.getHandle(settings.editorHolderHandle);
-        this.itemEditor = new itemEditor.ItemEditorController(bindings, new itemEditor.ItemEditorSettings());
-        this.setup(bindings, crudService, settings);
+        this.form = new form.NeedsSchemaForm(bindings.getForm<any>("input"));
+        this.setup(bindings, crudService);
     }
 
-    private async setup(bindings: controller.BindingCollection, crudService: ICrudService, settings: CrudSearchSettings) {
+    private async setup(bindings: controller.BindingCollection, crudService: ICrudService) {
         var schema: any = await crudService.getSearchSchema();
-        schema.title = "Search"; //Set title to search
-
         //Look for x-ui-search properties that are true
         var properties = schema.properties;
         if (properties) {
@@ -376,17 +401,15 @@ export class CrudSearch extends ICrudQueryComponent {
             }
         }
 
-        this.itemEditor.setSchema(this.schemaConverter.convert(schema));
+        this.form.setSchema(schema);
     }
 
     public setupQuery(query: any): void {
-        if (this.itemEditor) {
-            var searchQuery = this.itemEditor.currentData;
-            if (searchQuery !== null) {
-                for (var key in searchQuery) {
-                    if (query[key] === undefined) {
-                        query[key] = searchQuery[key];
-                    }
+        var searchQuery = this.form.getData();
+        if (searchQuery !== null) {
+            for (var key in searchQuery) {
+                if (query[key] === undefined) {
+                    query[key] = searchQuery[key];
                 }
             }
         }
@@ -398,7 +421,7 @@ export class CrudSearch extends ICrudQueryComponent {
     }
 
     public setData(pageData: any): void {
-        this.itemEditor.editData(pageData.data, () => Promise.resolve(0));
+        this.form.setData(pageData);
     }
 
     private async handlePageLoad(promise: Promise<any>) {
@@ -481,7 +504,6 @@ export class CrudTableController extends ListingDisplayController<any> {
  * @param {controller.ServiceCollection} services The service collection to add services to.
  */
 export function AddServices(services: controller.ServiceCollection) {
-    itemEditor.AddServices(services);
     services.tryAddTransient(CrudTableController, CrudTableController);
     services.tryAddSharedInstance(ListingDisplayOptions, new ListingDisplayOptions());
     services.tryAddTransient(CrudTableRowController, CrudTableRowController);
@@ -489,7 +511,6 @@ export function AddServices(services: controller.ServiceCollection) {
     services.tryAddShared(IAlert, s => new BrowserAlert());
     services.tryAddShared(CrudItemEditorController, CrudItemEditorController);
     services.tryAddTransient(CrudPageNumbers, CrudPageNumbers);
-    services.tryAddShared(CrudSearchSettings, s => new CrudSearchSettings());
     services.tryAddTransient(CrudSearch, CrudSearch);
     services.tryAddShared(CrudQueryManager, s => {
         return new CrudQueryManager();
