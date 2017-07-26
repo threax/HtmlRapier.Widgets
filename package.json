@@ -1,10 +1,9 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "private": false,
   "dependencies": {
-    "htmlrapier": ">=8.0.2",
-    "htmlrapier.bootstrap": ">=4.2.1",
+    "htmlrapier": ">=10.0.0",
     "htmlrapier.halcyon": ">=6.0.1"
   },
   "scripts": {
