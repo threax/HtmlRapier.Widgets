@@ -7,6 +7,7 @@ export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
 import * as events from 'hr.eventdispatcher';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as form from 'hr.form';
+import * as error from 'hr.error';
 
 export class ShowItemEditorEventArgs {
     /**
@@ -113,10 +114,14 @@ export class CrudItemEditorController{
     private lifecycle: MainLoadErrorLifecycle;
     private updated: ItemUpdatedCallback;
     private _autoClose: boolean = true;
+    private mainErrorToggle: controller.OnOffToggle;
+    private mainErrorView: controller.IView<Error>;
 
     constructor(bindings: controller.BindingCollection, crudService: ICrudService) {
         this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>("input"));
         this.dialog = bindings.getToggle("dialog");
+        this.mainErrorToggle = bindings.getToggle("mainError");
+        this.mainErrorView = bindings.getView<Error>("mainError");
         this.lifecycle = new MainLoadErrorLifecycle(
             bindings.getToggle("main"),
             bindings.getToggle("load"),
@@ -130,7 +135,8 @@ export class CrudItemEditorController{
 
     public async submit(evt: Event): Promise<void> {
         evt.preventDefault();
-        try{
+        try {
+            this.mainErrorToggle.off();
             this.lifecycle.showLoad();
             var data = this.form.getData();
             await this.updated(data);
@@ -139,8 +145,16 @@ export class CrudItemEditorController{
                 this.dialog.off();
             }
         }
-        catch(err){
-            this.lifecycle.showError(err);
+        catch (err) {
+            if (error.isFormErrors(err)) {
+                this.form.setError(err);
+                this.lifecycle.showMain();
+                this.mainErrorView.setData(err);
+                this.mainErrorToggle.on();
+            }
+            else {
+                this.lifecycle.showError(err);
+            }
         }
     }
 
