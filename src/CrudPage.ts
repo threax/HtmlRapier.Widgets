@@ -455,6 +455,7 @@ export class CrudTableController extends ListingDisplayController<any> {
 
     private crudService: ICrudService;
     private queryManager: CrudQueryManager;
+    private addToggle: controller.OnOffToggle;
 
     constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder) {
         super(bindings, options);
@@ -462,19 +463,10 @@ export class CrudTableController extends ListingDisplayController<any> {
         this.queryManager = queryManager;
         this.crudService = crudService;
         this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
-        this.setup(bindings, queryManager);
-    }
-
-    private async setup(bindings: controller.BindingCollection, queryManager: CrudQueryManager) {
-        await this.crudService.getPage(queryManager.setupQuery());
-
-        await this.crudService.canAdd()
-            .then(r => {
-                if (!r) {
-                    var addToggle = bindings.getToggle("add");
-                    addToggle.off();
-                }
-            });
+        this.addToggle = bindings.getToggle("add");
+        if (options.setLoadingOnStart) {
+            this.crudService.getPage(queryManager.setupQuery()); //Fires async
+        }
     }
 
     public add(evt: Event) {
@@ -500,6 +492,11 @@ export class CrudTableController extends ListingDisplayController<any> {
 
         try {
             this.setData(await promise);
+
+            if (this.addToggle && ! await this.crudService.canAdd()) {
+                this.addToggle.off();
+            }
+            this.addToggle = undefined; //Saw this once, thats all we care about
         }
         catch (err) {
             console.log("Error loading crud table data. Message: " + err.message);
