@@ -138,7 +138,7 @@ export class CrudItemEditorController{
         try {
             this.mainErrorToggle.off();
             this.lifecycle.showLoad();
-            var data = this.form.getData();
+            var data = this.form.getData() || {}; //Form returns null, but to get errors from the server, need to at least send an empty object
             await this.updated(data);
             this.lifecycle.showMain();
             if(this._autoClose){
