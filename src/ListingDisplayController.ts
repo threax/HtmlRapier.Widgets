@@ -1,5 +1,6 @@
 ﻿import * as controller from 'hr.controller';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import * as view from 'hr.view';
 
 export class ListingDisplayOptions {
     listingModelName: string = "listing";
@@ -12,11 +13,11 @@ export class ListingDisplayOptions {
 export type ListingItemCreatedCallback<T> = (bindings: controller.BindingCollection, data: T) => void;
 
 export class ListingDisplayController<T> {
-    private listingModel: controller.Model<any>;
+    private listingModel: controller.IView<any>;
     private lifecycle: MainLoadErrorLifecycle;
 
     constructor(bindings: controller.BindingCollection, settings: ListingDisplayOptions) {
-        this.listingModel = bindings.getModel<T>(settings.listingModelName);
+        this.listingModel = bindings.getView<T>(settings.listingModelName);
         this.lifecycle = new MainLoadErrorLifecycle(
             bindings.getToggle(settings.mainToggleName),
             bindings.getToggle(settings.loadToggleName),
@@ -26,6 +27,10 @@ export class ListingDisplayController<T> {
 
     public clearData() {
         this.listingModel.clear();
+    }
+
+    public setFormatter(formatter: view.IViewDataFormatter<T>): void {
+        this.listingModel.setFormatter(formatter);
     }
 
     public appendData(data: T | T[], createdCallback?: ListingItemCreatedCallback<T>) {

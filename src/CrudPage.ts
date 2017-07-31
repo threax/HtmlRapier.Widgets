@@ -8,6 +8,8 @@ import * as events from 'hr.eventdispatcher';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as form from 'hr.form';
 import * as error from 'hr.error';
+import * as schema from 'hr.schema';
+import * as view from 'hr.view';
 
 export class ShowItemEditorEventArgs {
     /**
@@ -50,6 +52,8 @@ export abstract class ICrudService {
     private dataLoadingDispatcher = new events.ActionEventDispatcher<DataLoadingEventArgs>();
 
     public abstract async getItemSchema(): Promise<any>;
+
+    public abstract async getListingSchema(): Promise<any>;
 
     public abstract async getSearchSchema(): Promise<any>;
 
@@ -456,6 +460,7 @@ export class CrudTableController extends ListingDisplayController<any> {
     private crudService: ICrudService;
     private queryManager: CrudQueryManager;
     private addToggle: controller.OnOffToggle;
+    private lookupDisplaySchema = true;
 
     constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder) {
         super(bindings, options);
@@ -480,7 +485,7 @@ export class CrudTableController extends ListingDisplayController<any> {
         var listingCreator = this.builder.createOnCallback(CrudTableRowController);
         for (var i = 0; i < items.length; ++i) {
             var itemData = this.crudService.getListingDisplayObject(items[i]);
-            this.appendData(itemData, (b, d) => {
+            this.appendData(itemData, (b, d) => {                
                 listingCreator(b, items[i]);
             });
         }
@@ -491,6 +496,14 @@ export class CrudTableController extends ListingDisplayController<any> {
         this.showLoad();
 
         try {
+            if (this.lookupDisplaySchema) {
+                this.lookupDisplaySchema = false;
+                var schema = await this.crudService.getListingSchema();
+                if (schema) {
+                    this.setFormatter(new view.SchemaViewDataFormatter(schema));
+                }
+            }
+
             this.setData(await promise);
 
             if (this.addToggle && ! await this.crudService.canAdd()) {

@@ -5,9 +5,28 @@ export { CrudSearch, CrudPageNumbers, CrudTableController, CrudItemEditorControl
 import * as ep from 'hr.externalpromise';
 
 export abstract class HypermediaPageInjector {
+    /**
+     * List the data according to the query.
+     * @param query
+     */
     abstract list(query: any): Promise<HypermediaCrudCollection>;
+
+    /**
+     * Returns true if the injector can list the data.
+     */
     abstract canList(): Promise<boolean>;
-    abstract getDeletePrompt(item: any): string;
+
+    /**
+     * Get text for the delete prompt for an item.
+     * @param item
+     */
+    abstract getDeletePrompt(item: HypermediaCrudDataResult): string;
+}
+
+export abstract class AbstractHypermediaPageInjector extends HypermediaPageInjector {
+    public getDeletePrompt(item: HypermediaCrudDataResult): string{
+        return "Are you sure you want to delete this item?";
+    }
 }
 
 export interface HypermediaCrudDataResult {
@@ -19,14 +38,14 @@ export interface HypermediaUpdatableResult extends HypermediaCrudDataResult {
     canUpdate(): boolean;
 }
 
-export interface HypermediaDeleteableResult extends HypermediaCrudDataResult {
-    delete(): Promise<void>;
-    canDelete(): boolean;
-}
-
 export function IsHypermediaUpdatableResult(i: HypermediaCrudDataResult): i is HypermediaUpdatableResult {
     return (<HypermediaUpdatableResult>i).update !== undefined
         && (<HypermediaUpdatableResult>i).canUpdate !== undefined;
+}
+
+export interface HypermediaDeleteableResult extends HypermediaCrudDataResult {
+    delete(): Promise<void>;
+    canDelete(): boolean;
 }
 
 export function IsHypermediaDeleteableResult(i: HypermediaCrudDataResult): i is HypermediaDeleteableResult {
@@ -79,6 +98,16 @@ export function IsSearchableCrudCollection(i: HypermediaCrudCollection): i is Se
         && (<SearchableCrudCollection>i).getListDocs !== undefined;
 }
 
+export interface ListingSchemaCrudCollection extends HypermediaCrudCollection {
+    getGetDocs(): Promise<any>;
+    hasGetDocs(): boolean;
+}
+
+export function IsListingSchemaCrudCollection(i: HypermediaCrudCollection): i is ListingSchemaCrudCollection {
+    return (<ListingSchemaCrudCollection>i).getGetDocs !== undefined
+        && (<ListingSchemaCrudCollection>i).hasGetDocs !== undefined;
+}
+
 export class HypermediaCrudService extends crudPage.ICrudService {
     public static get InjectorArgs(): di.DiFunction<any>[] {
         return [HypermediaPageInjector];
@@ -101,6 +130,19 @@ export class HypermediaCrudService extends crudPage.ICrudService {
             if (this.currentPage.hasAddDocs()) {
                 var docs = await this.currentPage.getAddDocs();
                 return docs.requestSchema;
+            }
+        }
+    }
+
+    public async getListingSchema() {
+        //This ensures that we don't return an item schema until at least one page is loaded.
+        await this.initialPageLoadPromise.Promise;
+
+        //Now check current page and see if we can get listings.
+        if (IsListingSchemaCrudCollection(this.currentPage)) {
+            if (this.currentPage.hasGetDocs()) {
+                var docs = await this.currentPage.getGetDocs();
+                return docs.responseSchema;
             }
         }
     }
