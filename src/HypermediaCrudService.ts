@@ -213,6 +213,10 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         return this.pageInjector.getDeletePrompt(item);
     }
 
+    public getSearchObject(item: any) {
+        return item.data;
+    }
+
     public getPage(query: any) {
         var loadingPromise = this.getPageAsync(query);
         if (this.initialLoad) {

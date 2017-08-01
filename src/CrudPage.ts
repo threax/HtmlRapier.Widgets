@@ -89,6 +89,10 @@ export abstract class ICrudService {
 
     public abstract getPageNumberState(list: any): pageWidget.PageNumberState;
 
+    public getSearchObject(item: any) {
+        return item;
+    }
+
     public get showItemEditorEvent() {
         return this.showItemEditorDispatcher.modifier;
     }
@@ -439,7 +443,7 @@ export class CrudSearch extends ICrudQueryComponent {
     }
 
     public setData(pageData: any): void {
-        this.form.setData(pageData);
+        this.form.setData(this.crudService.getSearchObject(pageData));
     }
 
     private async handlePageLoad(promise: Promise<any>) {
