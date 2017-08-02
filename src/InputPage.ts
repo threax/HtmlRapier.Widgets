@@ -82,7 +82,7 @@ export abstract class IInputService {
 }
 
 export class InputItemEditorController {
-    public static get InjectorArgs(): controller.DiFunction<any>[] {
+    public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, IInputService];
     }
 
@@ -121,7 +121,7 @@ export class InputItemEditorController {
 }
 
 export class InputPagesController {
-    public static get InjectorArgs(): controller.DiFunction<any>[] {
+    public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, IInputService];
     }
 

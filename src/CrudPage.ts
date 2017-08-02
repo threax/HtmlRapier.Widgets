@@ -113,7 +113,7 @@ export abstract class ICrudService {
 export type ItemUpdatedCallback = (data: any) => Promise<any>;
 
 export class CrudItemEditorController{
-    public static get InjectorArgs(): controller.DiFunction<any>[] {
+    public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, ICrudService];
     }
 
@@ -200,7 +200,7 @@ export class CrudItemEditorController{
 }
 
 export class CrudTableRowController {
-    public static get InjectorArgs(): controller.DiFunction<any>[] {
+    public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, IConfirm, ICrudService, IAlert, controller.InjectControllerData];
     }
 
@@ -321,7 +321,7 @@ interface ItemsPerPage {
 }
 
 export class CrudPageNumbers extends ICrudQueryComponent {
-    public static get InjectorArgs(): controller.DiFunction<any>[] {
+    public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, ICrudService, CrudQueryManager];
     }
 
@@ -392,7 +392,7 @@ export class CrudPageNumbers extends ICrudQueryComponent {
 }
 
 export class CrudSearch extends ICrudQueryComponent {
-    public static get InjectorArgs(): controller.DiFunction<any>[] {
+    public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, ICrudService, CrudQueryManager];
     }
 
@@ -457,7 +457,7 @@ export class CrudSearch extends ICrudQueryComponent {
 }
 
 export class CrudTableController extends ListingDisplayController<any> {
-    public static get InjectorArgs(): controller.DiFunction<any>[] {
+    public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder];
     }
 
