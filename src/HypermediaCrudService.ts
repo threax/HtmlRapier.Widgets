@@ -88,6 +88,16 @@ export function IsAddableCrudCollection(i: HypermediaCrudCollection): i is Addab
         && (<AddableCrudCollection>i).canAdd !== undefined;
 }
 
+export interface UpdateDocs extends HypermediaCrudCollection {
+    hasUpdateDocs(): boolean;
+    getUpdateDocs(): Promise<any>;
+}
+
+export function IsUpdateDocs(i: HypermediaCrudCollection): i is UpdateDocs {
+    return (<UpdateDocs>i).hasUpdateDocs !== undefined
+        && (<UpdateDocs>i).getUpdateDocs !== undefined;
+}
+
 export interface SearchableCrudCollection extends HypermediaCrudCollection {
     hasListDocs(): boolean;
     getListDocs(): Promise<any>;
@@ -129,6 +139,13 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (IsAddableCrudCollection(this.currentPage)) {
             if (this.currentPage.hasAddDocs()) {
                 var docs = await this.currentPage.getAddDocs();
+                return docs.requestSchema;
+            }
+        }
+
+        if (IsUpdateDocs(this.currentPage)) {
+            if (this.currentPage.hasUpdateDocs()) {
+                var docs = await this.currentPage.getUpdateDocs();
                 return docs.requestSchema;
             }
         }

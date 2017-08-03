@@ -451,7 +451,7 @@ export class CrudSearch extends ICrudQueryComponent {
             this.setData(await promise);
         }
         catch (err) {
-            console.log("Error loading crud table data for pages. Message: " + err.message);
+            console.log("Error loading crud table data for search. Message: " + err.message);
         }
     }
 }
@@ -500,6 +500,8 @@ export class CrudTableController extends ListingDisplayController<any> {
         this.showLoad();
 
         try {
+            var data = await promise; //Important to await this first
+
             if (this.lookupDisplaySchema) {
                 this.lookupDisplaySchema = false;
                 var schema = await this.crudService.getListingSchema();
@@ -508,7 +510,7 @@ export class CrudTableController extends ListingDisplayController<any> {
                 }
             }
 
-            this.setData(await promise);
+            this.setData(data);
 
             if (this.addToggle && ! await this.crudService.canAdd()) {
                 this.addToggle.off();
