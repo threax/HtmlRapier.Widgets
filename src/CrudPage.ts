@@ -204,10 +204,10 @@ export class CrudTableRowController {
         return [controller.BindingCollection, IConfirm, ICrudService, IAlert, controller.InjectControllerData];
     }
 
-    private data: any;
-    private crudService: ICrudService;
-    private confirm: IConfirm;
-    private alert: IAlert;
+    protected data: any;
+    protected crudService: ICrudService;
+    protected confirm: IConfirm;
+    protected alert: IAlert;
 
     constructor(bindings: controller.BindingCollection, confirm: IConfirm, crudService: ICrudService, alert: IAlert, data: any) {
         this.data = data;
