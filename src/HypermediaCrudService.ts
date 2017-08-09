@@ -3,24 +3,59 @@ import * as pageWidget from 'hr.widgets.PageNumberWidget';
 import * as di from 'hr.di';
 export { CrudSearch, CrudPageNumbers, CrudTableController, CrudItemEditorController } from 'hr.widgets.CrudPage';
 import * as ep from 'hr.externalpromise';
+import * as hrhistory from 'hr.history';
+
+export interface HypermediaPageInjectorOptions {
+    usePageQueryForFirstLoad?: boolean;
+    uniqueName?: string;
+}
 
 export abstract class HypermediaPageInjector {
+    private static nameindex = 0;
+    private _usePageQueryForFirstLoad: boolean = true;
+    private _uniqueName: string;
+
+    constructor(options?: HypermediaPageInjectorOptions) {
+        if (options === undefined) {
+            options = {};
+        }
+        if (options.usePageQueryForFirstLoad !== undefined) {
+            this._usePageQueryForFirstLoad = options.usePageQueryForFirstLoad;
+        }
+        this._uniqueName = options.uniqueName;
+        if (this.uniqueName === undefined) {
+            this._uniqueName = "hr.autonamed_hypermedia_injector_" + HypermediaPageInjector.nameindex++;
+        }
+    }
+
     /**
      * List the data according to the query.
      * @param query
      */
-    abstract list(query: any): Promise<HypermediaCrudCollection>;
+    public abstract list(query: any): Promise<HypermediaCrudCollection>;
 
     /**
      * Returns true if the injector can list the data.
      */
-    abstract canList(): Promise<boolean>;
+    public abstract canList(): Promise<boolean>;
 
     /**
      * Get text for the delete prompt for an item.
      * @param item
      */
-    abstract getDeletePrompt(item: HypermediaCrudDataResult): string;
+    public abstract getDeletePrompt(item: HypermediaCrudDataResult): string;
+
+    /**
+     * Determine if the query of the current page should be used as the first load's
+     * query or not. Defaults to true.
+     */
+    public get usePageQueryForFirstLoad(): boolean {
+        return this._usePageQueryForFirstLoad;
+    }
+
+    public get uniqueName(): string {
+        return this._uniqueName;
+    }
 }
 
 export abstract class AbstractHypermediaPageInjector extends HypermediaPageInjector {
@@ -118,17 +153,18 @@ export function IsListingSchemaCrudCollection(i: HypermediaCrudCollection): i is
         && (<ListingSchemaCrudCollection>i).hasGetDocs !== undefined;
 }
 
-export class HypermediaCrudService extends crudPage.ICrudService {
+export class HypermediaCrudService extends crudPage.ICrudService implements hrhistory.IHistoryHandler<any> {
     public static get InjectorArgs(): di.DiFunction<any>[] {
-        return [HypermediaPageInjector];
+        return [HypermediaPageInjector, hrhistory.IHistoryManager];
     }
 
     private initialLoad: boolean = true;
     private initialPageLoadPromise = new ep.ExternalPromise();
-    private currentPage: HypermediaCrudCollection;
+    private currentPage: HypermediaCrudCollection = null;
 
-    constructor(private pageInjector: HypermediaPageInjector) {
+    constructor(private pageInjector: HypermediaPageInjector, private historyManager: hrhistory.IHistoryManager) {
         super();
+        this.historyManager.registerHandler(this.pageInjector.uniqueName, this);
     }
 
     public async getItemSchema() {
@@ -235,7 +271,10 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     }
 
     public getPage(query: any) {
-        var loadingPromise = this.getPageAsync(query);
+        if (this.pageInjector.usePageQueryForFirstLoad && this.initialLoad) { //No current page, use the url query instead of the one passed in
+            query = this.historyManager.getCurrentQuery();
+        }
+        var loadingPromise = this.getPageAsync(query, true);
         if (this.initialLoad) {
             this.initialLoad = false;
             loadingPromise = loadingPromise
@@ -249,9 +288,17 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         return loadingPromise;
     }
 
-    private async getPageAsync(query: any) {
+    private async getPageAsync(query: any, recordHistory: boolean) {
         if (await this.pageInjector.canList()) {
             this.currentPage = await this.pageInjector.list(query);
+            if (recordHistory) {
+                if (this.initialLoad) {
+                    this.historyManager.replaceQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                }
+                else {
+                    this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                }
+            }
             return this.currentPage;
         }
         else {
@@ -267,6 +314,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (this.currentPage) {
             if (this.currentPage.canFirst()) {
                 this.currentPage = await this.currentPage.first();
+                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -286,6 +334,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (this.currentPage) {
             if (this.currentPage.canLast()) {
                 this.currentPage = await this.currentPage.last();
+                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -305,6 +354,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (this.currentPage) {
             if (this.currentPage.canNext()) {
                 this.currentPage = await this.currentPage.next();
+                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -324,6 +374,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (this.currentPage) {
             if (this.currentPage.canPrevious()) {
                 this.currentPage = await this.currentPage.previous();
+                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -343,6 +394,7 @@ export class HypermediaCrudService extends crudPage.ICrudService {
         if (this.currentPage) {
             if (this.currentPage.canRefresh()) {
                 this.currentPage = await this.currentPage.refresh();
+                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -365,9 +417,15 @@ export class HypermediaCrudService extends crudPage.ICrudService {
     public getPageNumberState(list: HypermediaCrudCollection) {
         return new pageWidget.HypermediaPageState(list);
     }
+
+    public async onPopState(data: any) {
+        var loadingPromise = this.getPageAsync(data, false);
+        this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
+    }
 }
 
 export function addServices(services: di.ServiceCollection) {
     services.tryAddShared(crudPage.ICrudService, HypermediaCrudService);
+    hrhistory.addServices(services);
     crudPage.AddServices(services);
 }
