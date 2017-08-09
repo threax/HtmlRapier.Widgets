@@ -274,11 +274,12 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (this.pageInjector.usePageQueryForFirstLoad && this.initialLoad) { //No current page, use the url query instead of the one passed in
             query = this.historyManager.getCurrentQuery();
         }
-        var loadingPromise = this.getPageAsync(query, true);
+        var loadingPromise = this.getPageAsync(query, false);
         if (this.initialLoad) {
             this.initialLoad = false;
             loadingPromise = loadingPromise
                 .then(r => {
+                    this.historyManager.replaceQueryState(this.pageInjector.uniqueName, this.currentPage.data);
                     this.initialPageLoadPromise.resolve(r);
                     return r;
                 });
@@ -292,12 +293,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (await this.pageInjector.canList()) {
             this.currentPage = await this.pageInjector.list(query);
             if (recordHistory) {
-                if (this.initialLoad) {
-                    this.historyManager.replaceQueryState(this.pageInjector.uniqueName, this.currentPage.data);
-                }
-                else {
-                    this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
-                }
+                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
             }
             return this.currentPage;
         }
