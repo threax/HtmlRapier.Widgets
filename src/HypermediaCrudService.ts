@@ -68,6 +68,16 @@ export interface HypermediaCrudDataResult {
     data: any;
 }
 
+export interface HypermediaRefreshableResult extends HypermediaCrudDataResult {
+    refresh();
+    canRefresh();
+}
+
+export function IsHypermediaRefreshableResult(i: HypermediaCrudDataResult): i is HypermediaRefreshableResult {
+    return (<HypermediaRefreshableResult>i).refresh !== undefined
+        && (<HypermediaRefreshableResult>i).canRefresh !== undefined;
+}
+
 export interface HypermediaUpdatableResult extends HypermediaCrudDataResult {
     update(data: any): Promise<any>;
     canUpdate(): boolean;
@@ -228,6 +238,9 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
     }
 
     public async edit(item: HypermediaCrudDataResult) {
+        if (IsHypermediaRefreshableResult(item) && item.canRefresh()) {
+            item = await item.refresh();
+        }
         var data = this.getEditObject(item);
         this.editData(item, data);
     }
