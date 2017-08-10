@@ -312,7 +312,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
                 query = historyState.query;
             }
         }
-        var loadingPromise = this.getPageAsync(query, false);
+        var loadingPromise = this.getPageAsync(query, !this.initialLoad);
         if (this.initialLoad) {
             this.initialLoad = false;
             loadingPromise = loadingPromise
