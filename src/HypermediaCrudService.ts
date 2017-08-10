@@ -46,6 +46,14 @@ export abstract class HypermediaPageInjector {
     public abstract getDeletePrompt(item: HypermediaCrudDataResult): string;
 
     /**
+     * Get the item id for a particular item. This can return null if there is no appropriate id.
+     * @param item
+     */
+    public getItemId(item: HypermediaCrudDataResult): string | null {
+        return null;
+    }
+
+    /**
      * Determine if the query of the current page should be used as the first load's
      * query or not. Defaults to true.
      */
@@ -246,7 +254,10 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
 
     private async beginEdit(item: HypermediaCrudDataResult, recordHistory: boolean){
         if(recordHistory){
-            
+            var itemId = this.pageInjector.getItemId(item);
+            if(itemId !== null){
+                this.linkManager.pushState(this.pageInjector.uniqueName, "Edit/" + itemId, null);
+            }
         }
     
         if (IsHypermediaRefreshableResult(item) && item.canRefresh()) {
