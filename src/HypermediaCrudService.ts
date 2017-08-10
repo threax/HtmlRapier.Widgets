@@ -241,6 +241,14 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
     }
 
     public async edit(item: HypermediaCrudDataResult) {
+        await this.beginEdit(item, true);
+    }
+
+    private async beginEdit(item: HypermediaCrudDataResult, recordHistory: boolean){
+        if(recordHistory){
+            
+        }
+    
         if (IsHypermediaRefreshableResult(item) && item.canRefresh()) {
             item = await item.refresh();
         }
@@ -298,7 +306,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
             this.initialLoad = false;
             loadingPromise = loadingPromise
                 .then(r => {
-                    this.historyManager.replaceQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                    this.historyManager.replaceState(this.pageInjector.uniqueName, null, this.currentPage.data);
                     this.initialPageLoadPromise.resolve(r);
                     return r;
                 });
@@ -312,7 +320,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (await this.pageInjector.canList()) {
             this.currentPage = await this.pageInjector.list(query);
             if (recordHistory) {
-                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                this.historyManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
             }
             return this.currentPage;
         }
@@ -329,7 +337,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (this.currentPage) {
             if (this.currentPage.canFirst()) {
                 this.currentPage = await this.currentPage.first();
-                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                this.historyManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -349,7 +357,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (this.currentPage) {
             if (this.currentPage.canLast()) {
                 this.currentPage = await this.currentPage.last();
-                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                this.historyManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -369,7 +377,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (this.currentPage) {
             if (this.currentPage.canNext()) {
                 this.currentPage = await this.currentPage.next();
-                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                this.historyManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -389,7 +397,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (this.currentPage) {
             if (this.currentPage.canPrevious()) {
                 this.currentPage = await this.currentPage.previous();
-                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                this.historyManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -409,7 +417,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         if (this.currentPage) {
             if (this.currentPage.canRefresh()) {
                 this.currentPage = await this.currentPage.refresh();
-                this.historyManager.pushQueryState(this.pageInjector.uniqueName, this.currentPage.data);
+                this.historyManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -434,7 +442,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
     }
 
     public async onPopState(args: hrhistory.HistoryArgs<any>) {
-        var loadingPromise = this.getPageAsync(args.data, false);
+        var loadingPromise = this.getPageAsync(args.query, false);
         this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
     }
 }
