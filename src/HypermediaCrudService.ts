@@ -3,7 +3,7 @@ import * as pageWidget from 'hr.widgets.PageNumberWidget';
 import * as di from 'hr.di';
 export { CrudSearch, CrudPageNumbers, CrudTableController, CrudItemEditorController } from 'hr.widgets.CrudPage';
 import * as ep from 'hr.externalpromise';
-import * as hrhistory from 'hr.history';
+import * as deeplink from 'hr.deeplink';
 
 export interface HypermediaPageInjectorOptions {
     usePageQueryForFirstLoad?: boolean;
@@ -163,19 +163,19 @@ export function IsListingSchemaCrudCollection(i: HypermediaCrudCollection): i is
         && (<ListingSchemaCrudCollection>i).hasGetDocs !== undefined;
 }
 
-export class HypermediaCrudService extends crudPage.ICrudService implements hrhistory.IHistoryHandler<any> {
+export class HypermediaCrudService extends crudPage.ICrudService implements deeplink.IDeepLinkHandler {
     public static get InjectorArgs(): di.DiFunction<any>[] {
-        return [HypermediaPageInjector, hrhistory.IHistoryManager];
+        return [HypermediaPageInjector, deeplink.IDeepLinkManager];
     }
 
     private initialLoad: boolean = true;
     private initialPageLoadPromise = new ep.ExternalPromise();
     private currentPage: HypermediaCrudCollection = null;
 
-    constructor(private pageInjector: HypermediaPageInjector, private historyManager: hrhistory.IHistoryManager) {
+    constructor(private pageInjector: HypermediaPageInjector, private historyManager: deeplink.IDeepLinkManager) {
         super();
         if(!this.historyManager){
-            this.historyManager = new hrhistory.NullHistoryManager();
+            this.historyManager = new deeplink.NullDeepLinkManager();
         }
         this.historyManager.registerHandler(this.pageInjector.uniqueName, this);
     }
@@ -441,7 +441,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         return new pageWidget.HypermediaPageState(list);
     }
 
-    public async onPopState(args: hrhistory.HistoryArgs<any>) {
+    public async onPopState(args: deeplink.DeepLinkArgs) {
         var loadingPromise = this.getPageAsync(args.query, false);
         this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
     }
@@ -449,7 +449,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
 
 export function addServices(services: di.ServiceCollection) {
     services.tryAddShared(crudPage.ICrudService, s => {
-        return new HypermediaCrudService(s.getRequiredService(HypermediaPageInjector), s.getService(hrhistory.IHistoryManager));
+        return new HypermediaCrudService(s.getRequiredService(HypermediaPageInjector), s.getService(deeplink.IDeepLinkManager));
     });
     crudPage.AddServices(services);
 }
