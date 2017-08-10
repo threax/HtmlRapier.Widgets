@@ -174,6 +174,9 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
 
     constructor(private pageInjector: HypermediaPageInjector, private historyManager: hrhistory.IHistoryManager) {
         super();
+        if(!this.historyManager){
+            this.historyManager = new hrhistory.NullHistoryManager();
+        }
         this.historyManager.registerHandler(this.pageInjector.uniqueName, this);
     }
 
@@ -427,14 +430,15 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
         return new pageWidget.HypermediaPageState(list);
     }
 
-    public async onPopState(data: any) {
-        var loadingPromise = this.getPageAsync(data, false);
+    public async onPopState(args: hrhistory.HistoryArgs<any>) {
+        var loadingPromise = this.getPageAsync(args.data, false);
         this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
     }
 }
 
 export function addServices(services: di.ServiceCollection) {
-    services.tryAddShared(crudPage.ICrudService, HypermediaCrudService);
-    hrhistory.addServices(services);
+    services.tryAddShared(crudPage.ICrudService, s => {
+        return new HypermediaCrudService(s.getRequiredService(HypermediaPageInjector), s.getService(hrhistory.IHistoryManager));
+    });
     crudPage.AddServices(services);
 }
