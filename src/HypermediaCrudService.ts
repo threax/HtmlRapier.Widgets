@@ -54,6 +54,14 @@ export abstract class HypermediaPageInjector {
     }
 
     /**
+     * Get the item id for a particular item. This can return null if there is no appropriate id.
+     * @param item
+     */
+    public async getById(id: string): Promise<HypermediaCrudDataResult | null> {
+        return Promise.resolve(null);
+    }
+
+    /**
      * Determine if the query of the current page should be used as the first load's
      * query or not. Defaults to true.
      */
@@ -453,8 +461,20 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     }
 
     public async onPopState(args: deeplink.DeepLinkArgs) {
-        var loadingPromise = this.getPageAsync(args.query, false);
-        this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
+        var path = args.inPagePath;
+        if(path) {
+            var split = path.split("/"); //Deep link paths will always start with a /, so add 1 to expected indices
+            if(split.length >=3 && split[1].toLowerCase() === "edit"){
+                var item = await this.pageInjector.getById(split[2]);
+                if(item !== null){
+                    this.beginEdit(item, false);
+                }
+            }
+        }
+        else{
+            var loadingPromise = this.getPageAsync(args.query, false);
+            this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
+        }
     }
 }
 
