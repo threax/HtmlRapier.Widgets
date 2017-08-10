@@ -288,9 +288,9 @@ export class HypermediaCrudService extends crudPage.ICrudService implements hrhi
 
     public getPage(query: any) {
         if (this.pageInjector.usePageQueryForFirstLoad && this.initialLoad) { //No current page, use the url query instead of the one passed in
-            var historyQuery = this.historyManager.getCurrentQuery();
-            if(historyQuery) {
-                query = historyQuery;
+            var historyState = this.historyManager.getCurrentState();
+            if(historyState) {
+                query = historyState.query;
             }
         }
         var loadingPromise = this.getPageAsync(query, false);
