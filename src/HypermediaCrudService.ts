@@ -321,10 +321,20 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     }
 
     public getPage(query: any) {
+        var replacePageUrl = true;
         if (this.pageInjector.usePageQueryForFirstLoad && this.initialLoad) { //No current page, use the url query instead of the one passed in
             var historyState = this.linkManager.getCurrentState();
             if(historyState) {
                 query = historyState.query;
+                var itemId = this.getEditIdFromPath(historyState.inPagePath);
+                if(itemId !== null){
+                    replacePageUrl = false;
+                    var item = this.pageInjector.getById(itemId).then(r =>{
+                        if(r !== null){
+                            this.beginEdit(r, false);
+                        } 
+                    });
+                }
             }
         }
         var loadingPromise = this.getPageAsync(query, !this.initialLoad);
@@ -332,16 +342,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
             this.initialLoad = false;
             loadingPromise = loadingPromise
                 .then(r => {
-                    var currentState = this.linkManager.getCurrentState();
-                    var itemId = this.getEditIdFromPath(currentState !== null ? currentState.inPagePath : null);
-                    if(itemId !== null){
-                        var item = this.pageInjector.getById(itemId).then(r =>{
-                            if(r !== null){
-                                this.beginEdit(r, false);
-                            } 
-                        });
-                    }
-                    else{
+                    if(replacePageUrl){
                         this.linkManager.replaceState(this.pageInjector.uniqueName, null, this.currentPage.data);
                     }
                     this.initialPageLoadPromise.resolve(r);
