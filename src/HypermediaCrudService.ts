@@ -332,7 +332,18 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
             this.initialLoad = false;
             loadingPromise = loadingPromise
                 .then(r => {
-                    this.linkManager.replaceState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                    var currentState = this.linkManager.getCurrentState();
+                    var itemId = this.getEditIdFromPath(currentState !== null ? currentState.inPagePath : null);
+                    if(itemId !== null){
+                        var item = this.pageInjector.getById(itemId).then(r =>{
+                            if(r !== null){
+                                this.beginEdit(r, false);
+                            } 
+                        });
+                    }
+                    else{
+                        this.linkManager.replaceState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                    }
                     this.initialPageLoadPromise.resolve(r);
                     return r;
                 });
@@ -468,14 +479,11 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     }
 
     public async onPopState(args: deeplink.DeepLinkArgs) {
-        var path = args.inPagePath;
-        if(path) {
-            var split = path.split("/"); //Deep link paths will always start with a /, so add 1 to expected indices
-            if(split.length >=3 && split[1].toLowerCase() === "edit"){
-                var item = await this.pageInjector.getById(split[2]);
-                if(item !== null){
-                    this.beginEdit(item, false);
-                }
+        var itemId = this.getEditIdFromPath(args.inPagePath);
+        if(itemId !== null) {
+            var item = await this.pageInjector.getById(itemId);
+            if(item !== null){
+                this.beginEdit(item, false);
             }
         }
         else{
@@ -485,6 +493,20 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
             this.fireCloseItemEditorEvent();
             this.allowCloseHistory = true;
         }
+    }
+
+    /**
+     * Get the edit id of the current path, will be null if the current path is not an edit path.
+     * @param inPagePath 
+     */
+    private getEditIdFromPath(inPagePath: string): string | null{
+        if(inPagePath) {
+            var split = inPagePath.split("/"); //Deep link paths will always start with a /, so add 1 to expected indices
+            if(split.length >=3 && split[1].toLowerCase() === "edit"){
+                return split[2];
+            }
+        }
+        return null;
     }
 }
 
