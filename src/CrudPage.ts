@@ -57,6 +57,7 @@ export class DataLoadingEventArgs {
 
 export abstract class ICrudService {
     private showItemEditorDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
+    private closeItemEditorDispatcher = new events.ActionEventDispatcher<void>();
     private dataLoadingDispatcher = new events.ActionEventDispatcher<DataLoadingEventArgs>();
 
     public abstract async getItemSchema(): Promise<any>;
@@ -109,6 +110,14 @@ export abstract class ICrudService {
         this.showItemEditorDispatcher.fire(args);
     }
 
+    public get closeItemEditorEvent() {
+        return this.closeItemEditorDispatcher.modifier;
+    }
+
+    protected fireCloseItemEditorEvent() {
+        this.closeItemEditorDispatcher.fire(undefined);
+    }
+
     public get dataLoadingEvent() {
         return this.dataLoadingDispatcher.modifier;
     }
@@ -148,6 +157,9 @@ export class CrudItemEditorController{
             true);
         crudService.showItemEditorEvent.add(arg => {
             this.showItemEditorHandler(arg);
+        });
+        crudService.closeItemEditorEvent.add(() => {
+            this.dialog.off();
         });
         this.setup(crudService);
     }

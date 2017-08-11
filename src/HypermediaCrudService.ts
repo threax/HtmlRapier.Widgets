@@ -187,6 +187,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     private initialLoad: boolean = true;
     private initialPageLoadPromise = new ep.ExternalPromise();
     private currentPage: HypermediaCrudCollection = null;
+    private allowCloseHistory: boolean = true;
 
     constructor(private pageInjector: HypermediaPageInjector, private linkManager: deeplink.IDeepLinkManager) {
         super();
@@ -253,7 +254,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     }
 
     private async itemEditorClosed() {
-        if(this.currentPage){
+        if(this.currentPage && this.allowCloseHistory){
             this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
         }
     }
@@ -480,6 +481,9 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         else{
             var loadingPromise = this.getPageAsync(args.query, false);
             this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
+            this.allowCloseHistory = false;
+            this.fireCloseItemEditorEvent();
+            this.allowCloseHistory = true;
         }
     }
 }
