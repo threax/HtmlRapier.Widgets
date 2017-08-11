@@ -252,6 +252,12 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         }
     }
 
+    private async itemEditorClosed() {
+        if(this.currentPage){
+            this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+        }
+    }
+
     public async canAdd() {
         return IsAddableCrudCollection(this.currentPage) && this.currentPage.canAdd();
     }
@@ -280,7 +286,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     }
 
     public editData(item: HypermediaCrudDataResult, dataPromise: Promise<any>) {
-        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(dataPromise, a => this.finishEdit(a, item), item));
+        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(dataPromise, a => this.finishEdit(a, item), item, () => this.itemEditorClosed()));
     }
 
     protected async getEditObject(item: HypermediaCrudDataResult) {

@@ -23,15 +23,23 @@ export class ShowItemEditorEventArgs {
     update: ItemUpdatedCallback;
 
     /**
+     * The function called when the item editor is closed. This might happen even if the data
+     * is not updated. It also might never happen if "close" is not an appropriate action for
+     * the editor. But if it appears in another window or location, this should fire.
+     */
+    closed: ItemEditorClosedCallback;
+
+    /**
      * If the data came from another result this will have a value.
      * What value this is depends on the crud service that fired the event.
      */
     dataResult: any;
 
-    constructor(dataPromise: Promise<any>, update: ItemUpdatedCallback, dataResult?: any) {
+    constructor(dataPromise: Promise<any>, update: ItemUpdatedCallback, dataResult?: any, closed?: ItemEditorClosedCallback) {
         this.dataPromise = dataPromise;
         this.update = update;
         this.dataResult = dataResult;
+        this.closed = closed;
     }
 }
 
@@ -111,6 +119,7 @@ export abstract class ICrudService {
 }
 
 export type ItemUpdatedCallback = (data: any) => Promise<any>;
+export type ItemEditorClosedCallback = () => void;
 
 export class CrudItemEditorController{
     public static get InjectorArgs(): controller.InjectableArgs {
@@ -121,6 +130,7 @@ export class CrudItemEditorController{
     private dialog: controller.OnOffToggle;
     private lifecycle: MainLoadErrorLifecycle;
     private updated: ItemUpdatedCallback;
+    private closed: ItemEditorClosedCallback;
     private _autoClose: boolean = true;
     private mainErrorToggle: controller.OnOffToggle;
     private mainErrorView: controller.IView<Error>;
@@ -128,6 +138,7 @@ export class CrudItemEditorController{
     constructor(bindings: controller.BindingCollection, crudService: ICrudService) {
         this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>("input"));
         this.dialog = bindings.getToggle("dialog");
+        this.dialog.offEvent.add(i => !this.closed || this.closed());
         this.mainErrorToggle = bindings.getToggle("mainError");
         this.mainErrorView = bindings.getView<Error>("mainError");
         this.lifecycle = new MainLoadErrorLifecycle(
@@ -180,6 +191,7 @@ export class CrudItemEditorController{
             this.lifecycle.showLoad();
             var data = await arg.dataPromise;
             this.updated = arg.update;
+            this.closed = arg.closed;
             this.form.setData(data);
             this.lifecycle.showMain();
         }
