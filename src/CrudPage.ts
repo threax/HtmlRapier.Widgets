@@ -605,7 +605,25 @@ export function AddServices(services: controller.ServiceCollection) {
     services.tryAddTransient(CrudTableRowController, CrudTableRowController);
     services.tryAddShared(IConfirm, s => new BrowserConfirm());
     services.tryAddShared(IAlert, s => new BrowserAlert());
-    services.tryAddShared(CrudItemEditorController, CrudItemEditorController);
+    
+    //Register all types of crud item editor, the user can ask for what they need when they build their page
+    services.tryAddSharedInstance(CrudItemEditorControllerOptions, new CrudItemEditorControllerOptions());
+    services.tryAddShared(CrudItemEditorController, CrudItemEditorController); //Undefined id acts as both add and update
+    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorController, //Add Item Editor
+        s => {
+            var options = s.getRequiredService(CrudItemEditorControllerOptions);
+            var customOptions = Object.create(options);
+            customOptions.type = CrudItemEditorType.Add;
+            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(ICrudService), customOptions)
+        });
+    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorController, s => { //Update item editor
+            var options = s.getRequiredService(CrudItemEditorControllerOptions);
+            var customOptions = Object.create(options);
+            customOptions.type = CrudItemEditorType.Update;
+            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(ICrudService), customOptions)
+        });
+    
+    //Additional page services like search and page numbers
     services.tryAddTransient(CrudPageNumbers, CrudPageNumbers);
     services.tryAddTransient(CrudSearch, CrudSearch);
     services.tryAddShared(CrudQueryManager, s => {
