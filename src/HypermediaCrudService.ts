@@ -6,7 +6,19 @@ import * as ep from 'hr.externalpromise';
 import * as deeplink from 'hr.deeplink';
 
 export interface HypermediaPageInjectorOptions {
+    /**
+     * Determine if the query of the current page should be used as the first load's
+     * query or not. Defaults to true. If you only have a single table and want deep linking
+     * keep this to true, if the crud table you are creating is part of a larger page, you 
+     * probably want to set this to false.
+     */
     usePageQueryForFirstLoad?: boolean;
+
+    /**
+     * A unique name for the injector. If this is not provided it will be auto generated to 'hr.autonamed_hypermedia_injector_X'
+     * where X is the index of how many injectors have been created so far. This is usually good enough and you won't need to provide
+     * a value for this option.
+     */
     uniqueName?: string;
 }
 
@@ -82,7 +94,9 @@ export abstract class HypermediaPageInjector {
 
     /**
      * Determine if the query of the current page should be used as the first load's
-     * query or not. Defaults to true.
+     * query or not. Defaults to true. If you only have a single table and want deep linking
+     * keep this to true, if the crud table you are creating is part of a larger page, you 
+     * probably want to set this to false.
      */
     public get usePageQueryForFirstLoad(): boolean {
         return this._usePageQueryForFirstLoad;
