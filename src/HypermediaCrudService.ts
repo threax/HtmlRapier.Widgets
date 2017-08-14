@@ -107,7 +107,44 @@ export abstract class HypermediaPageInjector {
     }
 }
 
+export abstract class HypermediaChildPageInjector<T extends HypermediaCrudDataResult> extends HypermediaPageInjector {
+    private parentResult: T;
+
+    constructor(options?: HypermediaPageInjectorOptions) {
+        if(options === undefined){
+            options = {};
+        }
+        else{
+            options = Object.create(options);
+        }
+        options.usePageQueryForFirstLoad = false;
+        super(options);
+    }
+
+    public set parent(value: T) {
+        this.parentResult = value;
+    }
+
+    public get parent(): T {
+        return this.parentResult;
+    }
+}
+
 export abstract class AbstractHypermediaPageInjector extends HypermediaPageInjector {
+    constructor(options?: HypermediaPageInjectorOptions) {
+        super(options);
+    }
+
+    public getDeletePrompt(item: HypermediaCrudDataResult): string{
+        return "Are you sure you want to delete this item?";
+    }
+}
+
+export abstract class AbstractHypermediaChildPageInjector<T extends HypermediaCrudDataResult> extends HypermediaChildPageInjector<T> {
+    constructor(options?: HypermediaPageInjectorOptions) {
+        super(options);
+    }
+
     public getDeletePrompt(item: HypermediaCrudDataResult): string{
         return "Are you sure you want to delete this item?";
     }
