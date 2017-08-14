@@ -61,76 +61,185 @@ export abstract class ICrudService {
     private closeItemEditorDispatcher = new events.ActionEventDispatcher<void>();
     private dataLoadingDispatcher = new events.ActionEventDispatcher<DataLoadingEventArgs>();
 
+    /**
+     * This function will return the schema for adding an item. The default implementation will just return
+     * getItemSchema, but if you can return a unique schema for adding, overwrite this function.
+     */
+    public async getAddItemSchema(): Promise<any>{
+        return this.getItemSchema();
+    }
+
+    /**
+     * This function will return the schema for editing an item. This function should try to return update
+     * schema first, and failing that return the add schema.
+     */
     public abstract async getItemSchema(): Promise<any>;
 
+    /**
+     * Get the schema for listing objects in the table. This helps format items on the table according to how
+     * the service dictates they should be formatted.
+     */
     public abstract async getListingSchema(): Promise<any>;
 
+    /**
+     * Get the schema to use when searching for items in this service.
+     */
     public abstract async getSearchSchema(): Promise<any>;
 
+    /**
+     * Start trying to add a new item to the service.
+     * @param item The default settings for the item
+     */
     public abstract async add(item?: any);
 
+    /**
+     * Determine if the crud service can add items.
+     */
     public abstract async canAdd(): Promise<boolean>;
 
+    /**
+     * Start trying to edit an item in the service
+     * @param item The item to edit
+     */
     public abstract async edit(item: any);
 
+    /**
+     * Determine if an item can be edited.
+     * @param item The item to check for editing capability
+     */
     public abstract canEdit(item: any): boolean;
 
+    /**
+     * Get the prompt to show the user when trying to delete an item.
+     * @param item The item to get the prompt for
+     */
     public abstract getDeletePrompt(item: any): string;
 
+    /**
+     * Delete item
+     * @param item The item to delete
+     */
     public abstract async del(item: any): Promise<any>;
 
+    /**
+     * Determine if an item can be deleted.
+     * @param item The item to check
+     */
     public abstract canDel(item: any): boolean;
 
+    /**
+     * Get a particular page in the item collection based on the query.
+     * @param query The query to use
+     */
     public abstract getPage(query: any): Promise<any>;
 
+    /**
+     * Get the first page of the last query.
+     */
     public abstract firstPage(): void;
 
+    /**
+     * Get the last page of the last query.
+     */
     public abstract lastPage(): void;
 
+    /**
+     * Get the next page of the last query.
+     */
     public abstract nextPage(): void;
 
+    /**
+     * Get the previous page of the last query.
+     */
     public abstract previousPage(): void;
 
+    /**
+     * Refresh the page of the last query.
+     */
     public abstract refreshPage(): void;
 
+    /**
+     * Get the items from a list result. This allows you to have the items be a separate object
+     * from the result. This depends on your server implementation.
+     * @param list The listing result.
+     */
     public abstract getItems(list: any): any[];
 
+    /**
+     * Get the listing display object version of the given item.
+     * @param item The item
+     */
     public abstract getListingDisplayObject(item: any);
 
+    /**
+     * Get the object to pass to the page numbers to set their state.
+     * @param list The listing result.
+     */
     public abstract getPageNumberState(list: any): pageWidget.PageNumberState;
 
+    /**
+     * Get the view of item that is its search query.
+     * @param item The item
+     */
     public getSearchObject(item: any) {
         return item;
     }
 
+    /**
+     * This event is fired when the service is requesting to show the item editor.
+     */
     public get showItemEditorEvent() {
         return this.showItemEditorDispatcher.modifier;
     }
 
+    /**
+     * Call this function to show the item editor. What editor is shown depends on how your crud page is setup.
+     * @param args The args for showing the editor
+     */
     protected fireShowItemEditorEvent(args: ShowItemEditorEventArgs) {
         this.showItemEditorDispatcher.fire(args);
     }
 
+    /**
+     * This event is fired when the service is requesting to show the add item editor.
+     */
     public get showAddItemEvent() {
         return this.showAddItemDispatcher.modifier;
     }
 
+    /**
+     * Call this function to show the add item editor. What editor is really shown depends on how your crud page is setup.
+     * @param args The args for showing the editor.
+     */
     protected fireAddItemEvent(args: ShowItemEditorEventArgs) {
         this.showAddItemDispatcher.fire(args);
     }
 
+    /**
+     * This event is fired when item editors should close. Any open item editors should fire this event.
+     */
     public get closeItemEditorEvent() {
         return this.closeItemEditorDispatcher.modifier;
     }
 
+    /**
+     * Fire this function to close any open item editors. This should apply to both add and update.
+     */
     protected fireCloseItemEditorEvent() {
         this.closeItemEditorDispatcher.fire(undefined);
     }
 
+    /**
+     * This event is fired when the service is loading data for the main display.
+     */
     public get dataLoadingEvent() {
         return this.dataLoadingDispatcher.modifier;
     }
 
+    /**
+     * Call this function to alert the crud page that main display data is loading.
+     * @param args The args
+     */
     protected fireDataLoadingEvent(args: DataLoadingEventArgs) {
         this.dataLoadingDispatcher.fire(args);
     }
@@ -203,7 +312,7 @@ export class CrudItemEditorController{
         crudService.closeItemEditorEvent.add(() => {
             this.dialog.off();
         });
-        this.setup(crudService);
+        this.setup(crudService, options);
     }
 
     public async submit(evt: Event): Promise<void> {
@@ -254,9 +363,17 @@ export class CrudItemEditorController{
         }
     }
 
-    private async setup(crudService: ICrudService) {
+    private async setup(crudService: ICrudService, options: CrudItemEditorControllerOptions) {
         try {
-            var schema = await crudService.getItemSchema();
+            var schema;
+            if((options.type & CrudItemEditorType.Update) === CrudItemEditorType.Update) {
+                //This covers the case where the editor is an update only or update and add
+                schema = await crudService.getItemSchema();
+            }
+            else if((options.type & CrudItemEditorType.Add) === CrudItemEditorType.Add) {
+                //This convers when the editor is for adding items
+                schema = await crudService.getAddItemSchema();
+            }
             this.form.setSchema(schema);
         }
         catch (err) {

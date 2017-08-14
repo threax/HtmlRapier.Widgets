@@ -234,17 +234,26 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         //This ensures that we don't return an item schema until at least one page is loaded.
         await this.initialPageLoadPromise.Promise;
 
-        //Now check current page and see if we can add stuff.
-        if (IsAddableCrudCollection(this.currentPage)) {
-            if (this.currentPage.hasAddDocs()) {
-                var docs = await this.currentPage.getAddDocs();
+        //Prioritize returning the update item docs
+        if (IsUpdateDocs(this.currentPage)) {
+            if (this.currentPage.hasUpdateDocs()) {
+                var docs = await this.currentPage.getUpdateDocs();
                 return docs.requestSchema;
             }
         }
 
-        if (IsUpdateDocs(this.currentPage)) {
-            if (this.currentPage.hasUpdateDocs()) {
-                var docs = await this.currentPage.getUpdateDocs();
+        //If we can't get the update item docs, see if we can return add item docs
+        return this.getAddItemSchema();
+    }
+
+    public async getAddItemSchema() {
+        //This ensures that we don't return an item schema until at least one page is loaded.
+        await this.initialPageLoadPromise.Promise;
+
+        //If possible return the add item docs
+        if (IsAddableCrudCollection(this.currentPage)) {
+            if (this.currentPage.hasAddDocs()) {
+                var docs = await this.currentPage.getAddDocs();
                 return docs.requestSchema;
             }
         }
