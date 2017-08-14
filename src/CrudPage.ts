@@ -57,6 +57,7 @@ export class DataLoadingEventArgs {
 
 export abstract class ICrudService {
     private showItemEditorDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
+    private showAddItemDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
     private closeItemEditorDispatcher = new events.ActionEventDispatcher<void>();
     private dataLoadingDispatcher = new events.ActionEventDispatcher<DataLoadingEventArgs>();
 
@@ -110,6 +111,14 @@ export abstract class ICrudService {
         this.showItemEditorDispatcher.fire(args);
     }
 
+    public get showAddItemEvent() {
+        return this.showAddItemDispatcher.modifier;
+    }
+
+    protected fireAddItemEvent(args: ShowItemEditorEventArgs) {
+        this.showAddItemDispatcher.fire(args);
+    }
+
     public get closeItemEditorEvent() {
         return this.closeItemEditorDispatcher.modifier;
     }
@@ -130,9 +139,30 @@ export abstract class ICrudService {
 export type ItemUpdatedCallback = (data: any) => Promise<any>;
 export type ItemEditorClosedCallback = () => void;
 
+export enum CrudItemEditorType{
+    Add = 1,
+    Update = 1 << 1
+}
+
+export class CrudItemEditorControllerOptions {
+    public static get InjectorArgs(): controller.InjectableArgs {
+        return [];
+    }
+
+    public formName = "input";
+    public dialogName = "dialog";
+    public mainErrorToggleName = "mainError";
+    public mainErrorViewName = "mainError";
+    public mainToggleName = "main";
+    public loadToggleName = "load";
+    public errorToggleName = "error";
+    public activateLoadingOnStart = true;
+    public type = CrudItemEditorType.Add | CrudItemEditorType.Update;
+}
+
 export class CrudItemEditorController{
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ICrudService];
+        return [controller.BindingCollection, ICrudService, /*Options here, must call constructor manually unless defaults are ok. Leave options last.*/];
     }
 
     private form: controller.IForm<any>;
@@ -144,20 +174,32 @@ export class CrudItemEditorController{
     private mainErrorToggle: controller.OnOffToggle;
     private mainErrorView: controller.IView<Error>;
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService) {
-        this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>("input"));
-        this.dialog = bindings.getToggle("dialog");
+    constructor(bindings: controller.BindingCollection, crudService: ICrudService, options: CrudItemEditorControllerOptions) {
+        if(options === undefined){
+            options = new CrudItemEditorControllerOptions();
+        }
+
+        this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>(options.formName));
+        this.dialog = bindings.getToggle(options.dialogName);
         this.dialog.offEvent.add(i => !this.closed || this.closed());
-        this.mainErrorToggle = bindings.getToggle("mainError");
-        this.mainErrorView = bindings.getView<Error>("mainError");
+        this.mainErrorToggle = bindings.getToggle(options.mainErrorToggleName);
+        this.mainErrorView = bindings.getView<Error>(options.mainErrorViewName);
         this.lifecycle = new MainLoadErrorLifecycle(
-            bindings.getToggle("main"),
-            bindings.getToggle("load"),
-            bindings.getToggle("error"),
-            true);
-        crudService.showItemEditorEvent.add(arg => {
-            this.showItemEditorHandler(arg);
-        });
+            bindings.getToggle(options.mainToggleName),
+            bindings.getToggle(options.loadToggleName),
+            bindings.getToggle(options.errorToggleName),
+            options.activateLoadingOnStart);
+
+        if((options.type & CrudItemEditorType.Add) === CrudItemEditorType.Add){
+            crudService.showAddItemEvent.add(arg => {
+                this.showItemEditorHandler(arg);
+            });
+        }
+        if((options.type & CrudItemEditorType.Update) === CrudItemEditorType.Update){
+            crudService.showItemEditorEvent.add(arg => {
+                this.showItemEditorHandler(arg);
+            });
+        }
         crudService.closeItemEditorEvent.add(() => {
             this.dialog.off();
         });

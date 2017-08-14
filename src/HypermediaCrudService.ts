@@ -276,7 +276,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (item === undefined) {
             item = {};
         }
-        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(item, a => this.finishAdd(a), this.currentPage));
+        this.fireAddItemEvent(new crudPage.ShowItemEditorEventArgs(item, a => this.finishAdd(a), this.currentPage));
     }
 
     private async finishAdd(data) {
