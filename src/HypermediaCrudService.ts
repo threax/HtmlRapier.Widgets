@@ -54,11 +54,30 @@ export abstract class HypermediaPageInjector {
     }
 
     /**
+     * Create a query that looks up an item by its id. The id that needs to be stored
+     * will be passed in as a string, since that can represent any id type.
+     */
+    public createIdQuery(id: string): {} | null{
+        return null;
+    }
+
+    /**
      * Get the item id for a particular item. This can return null if there is no appropriate id.
+     * By default this function will use createIdQuery to create a query for the id and then the
+     * list function to get the result. If you need to do something else you can override this function.
+     * If createIdQuery returns null this function will also return null.
      * @param item
      */
     public async getById(id: string): Promise<HypermediaCrudDataResult | null> {
-        return Promise.resolve(null);
+        var query = this.createIdQuery(id);
+        var retVal = null;
+        if(query !== null){
+            var results = await this.list(query);
+            if(results.data.total > 0){
+                retVal = results.items[0];
+            }
+        }
+        return retVal;
     }
 
     /**
