@@ -349,6 +349,7 @@ export class CrudItemEditorController{
     }
 
     private async showItemEditorHandler(arg: ShowItemEditorEventArgs) {
+        this.mainErrorToggle.off();
         try {
             this.dialog.on();
             this.lifecycle.showLoad();
