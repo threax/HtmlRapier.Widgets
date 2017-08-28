@@ -288,7 +288,7 @@ export class CrudItemEditorController{
     }
 
     private _form: controller.IForm<any>;
-    private dialog: controller.OnOffToggle;
+    private _dialog: controller.OnOffToggle;
     private lifecycle: MainLoadErrorLifecycle;
     private updated: ItemUpdatedCallback;
     private closed: ItemEditorClosedCallback;
@@ -306,8 +306,8 @@ export class CrudItemEditorController{
         }
 
         this._form = new form.NeedsSchemaForm<any>(bindings.getForm<any>(options.formName));
-        this.dialog = bindings.getToggle(options.dialogName);
-        this.dialog.offEvent.add(i => !this.closed || this.closed());
+        this._dialog = bindings.getToggle(options.dialogName);
+        this._dialog.offEvent.add(i => !this.closed || this.closed());
         this.mainErrorToggle = bindings.getToggle(options.mainErrorToggleName);
         this.mainErrorView = bindings.getView<Error>(options.mainErrorViewName);
         this.lifecycle = new MainLoadErrorLifecycle(
@@ -327,7 +327,7 @@ export class CrudItemEditorController{
             });
         }
         crudService.closeItemEditorEvent.add(() => {
-            this.dialog.off();
+            this._dialog.off();
         });
         this.extensions.constructed(this, bindings);
         this.setup(crudService, options);
@@ -342,7 +342,7 @@ export class CrudItemEditorController{
             await this.updated(data);
             this.lifecycle.showMain();
             if(this._autoClose){
-                this.dialog.off();
+                this._dialog.off();
             }
         }
         catch (err) {
@@ -370,10 +370,14 @@ export class CrudItemEditorController{
         return this._form;
     }
 
+    public get dialog(): controller.OnOffToggle {
+        return this._dialog;
+    }
+
     private async showItemEditorHandler(arg: ShowItemEditorEventArgs) {
         this.mainErrorToggle.off();
         try {
-            this.dialog.on();
+            this._dialog.on();
             this.lifecycle.showLoad();
             var data = await arg.dataPromise;
             this.updated = arg.update;
