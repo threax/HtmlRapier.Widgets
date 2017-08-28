@@ -269,12 +269,25 @@ export class CrudItemEditorControllerOptions {
     public type = CrudItemEditorType.Add | CrudItemEditorType.Update;
 }
 
-export class CrudItemEditorController{
-    public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ICrudService, /*Options here, must call constructor manually unless defaults are ok. Leave options last.*/];
+export class CrudItemEditorControllerExtensions {
+    constructed(editor: CrudItemEditorController, bindings: controller.BindingCollection): void {
+
     }
 
-    private form: controller.IForm<any>;
+    setup(editor: CrudItemEditorController): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+}
+
+export class CrudItemEditorController{
+    public static get InjectorArgs(): controller.InjectableArgs {
+        return [controller.BindingCollection,
+            CrudItemEditorControllerExtensions,
+            ICrudService,
+            /*Options here, must call constructor manually unless defaults are ok. Leave options last.*/];
+    }
+
+    private _form: controller.IForm<any>;
     private dialog: controller.OnOffToggle;
     private lifecycle: MainLoadErrorLifecycle;
     private updated: ItemUpdatedCallback;
@@ -283,12 +296,16 @@ export class CrudItemEditorController{
     private mainErrorToggle: controller.OnOffToggle;
     private mainErrorView: controller.IView<Error>;
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService, options: CrudItemEditorControllerOptions) {
+    constructor(bindings: controller.BindingCollection,
+        private extensions: CrudItemEditorControllerExtensions,
+        crudService: ICrudService,
+        options: CrudItemEditorControllerOptions)
+    {
         if(options === undefined){
             options = new CrudItemEditorControllerOptions();
         }
 
-        this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>(options.formName));
+        this._form = new form.NeedsSchemaForm<any>(bindings.getForm<any>(options.formName));
         this.dialog = bindings.getToggle(options.dialogName);
         this.dialog.offEvent.add(i => !this.closed || this.closed());
         this.mainErrorToggle = bindings.getToggle(options.mainErrorToggleName);
@@ -312,6 +329,7 @@ export class CrudItemEditorController{
         crudService.closeItemEditorEvent.add(() => {
             this.dialog.off();
         });
+        this.extensions.constructed(this, bindings);
         this.setup(crudService, options);
     }
 
@@ -320,7 +338,7 @@ export class CrudItemEditorController{
         try {
             this.mainErrorToggle.off();
             this.lifecycle.showLoad();
-            var data = this.form.getData() || {}; //Form returns null, but to get errors from the server, need to at least send an empty object
+            var data = this._form.getData() || {}; //Form returns null, but to get errors from the server, need to at least send an empty object
             await this.updated(data);
             this.lifecycle.showMain();
             if(this._autoClose){
@@ -329,7 +347,7 @@ export class CrudItemEditorController{
         }
         catch (err) {
             if (error.isFormErrors(err)) {
-                this.form.setError(err);
+                this._form.setError(err);
                 this.lifecycle.showMain();
                 this.mainErrorView.setData(err);
                 this.mainErrorToggle.on();
@@ -348,6 +366,10 @@ export class CrudItemEditorController{
         this._autoClose = value;
     }
 
+    public get form(): controller.IForm<any> {
+        return this._form;
+    }
+
     private async showItemEditorHandler(arg: ShowItemEditorEventArgs) {
         this.mainErrorToggle.off();
         try {
@@ -356,7 +378,7 @@ export class CrudItemEditorController{
             var data = await arg.dataPromise;
             this.updated = arg.update;
             this.closed = arg.closed;
-            this.form.setData(data);
+            this._form.setData(data);
             this.lifecycle.showMain();
         }
         catch (err) {
@@ -366,6 +388,7 @@ export class CrudItemEditorController{
 
     private async setup(crudService: ICrudService, options: CrudItemEditorControllerOptions) {
         try {
+            await this.extensions.setup(this);
             var schema;
             if((options.type & CrudItemEditorType.Update) === CrudItemEditorType.Update) {
                 //This covers the case where the editor is an update only or update and add
@@ -375,7 +398,7 @@ export class CrudItemEditorController{
                 //This convers when the editor is for adding items
                 schema = await crudService.getAddItemSchema();
             }
-            this.form.setSchema(schema);
+            this._form.setSchema(schema);
         }
         catch (err) {
             console.log("An error occured loading the schema for the CrudItemEditor. Message: " + err.message);
@@ -725,20 +748,33 @@ export function AddServices(services: controller.ServiceCollection) {
     services.tryAddShared(IAlert, s => new BrowserAlert());
     
     //Register all types of crud item editor, the user can ask for what they need when they build their page
+    //Undefined id acts as both add and update, by default the options and extensions are shared with all editors, unless otherwise specified
     services.tryAddSharedInstance(CrudItemEditorControllerOptions, new CrudItemEditorControllerOptions());
-    services.tryAddShared(CrudItemEditorController, CrudItemEditorController); //Undefined id acts as both add and update
-    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorController, //Add Item Editor
+    services.tryAddSharedInstance(CrudItemEditorControllerExtensions, new CrudItemEditorControllerExtensions());
+    services.tryAddShared(CrudItemEditorController,
+    s => {
+        return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), s.getRequiredService(CrudItemEditorControllerOptions))
+    });
+
+    //Add Item Editor
+    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorControllerExtensions, s => s.getRequiredService(CrudItemEditorControllerExtensions));
+    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorControllerOptions, s => s.getRequiredService(CrudItemEditorControllerOptions));
+    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorController,
         s => {
-            var options = s.getRequiredService(CrudItemEditorControllerOptions);
+            var options = s.getRequiredServiceId(CrudItemEditorType.Add, CrudItemEditorControllerOptions);
             var customOptions = Object.create(options);
             customOptions.type = CrudItemEditorType.Add;
-            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(ICrudService), customOptions)
+            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Add, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
         });
-    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorController, s => { //Update item editor
-            var options = s.getRequiredService(CrudItemEditorControllerOptions);
+
+    //Update item editor
+    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorControllerExtensions, s => s.getRequiredService(CrudItemEditorControllerExtensions));
+    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorControllerOptions, s => s.getRequiredService(CrudItemEditorControllerOptions));
+    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorController, s => { 
+            var options = s.getRequiredServiceId(CrudItemEditorType.Update, CrudItemEditorControllerOptions);
             var customOptions = Object.create(options);
             customOptions.type = CrudItemEditorType.Update;
-            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(ICrudService), customOptions)
+            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Update, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
         });
     
     //Additional page services like search and page numbers
