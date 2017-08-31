@@ -1,16 +1,5 @@
 import * as controller from 'hr.controller';
-import { ListingDisplayController, ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
-import { IConfirm, BrowserConfirm } from 'hr.widgets.confirm';
-import { IAlert, BrowserAlert } from 'hr.widgets.alert';
-import * as pageWidget from 'hr.widgets.PageNumberWidget';
 export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
-import * as events from 'hr.eventdispatcher';
-import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
-import * as form from 'hr.form';
-import * as error from 'hr.error';
-import * as schema from 'hr.schema';
-import * as view from 'hr.view';
-import { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from 'hr.widgets.CrudService';
 export { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from 'hr.widgets.CrudService';
 import * as crudRow from 'hr.widgets.CrudTableRow';
 export { CrudTableRowController, CrudTableRowControllerExtensions } from 'hr.widgets.CrudTableRow';
