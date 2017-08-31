@@ -72,3 +72,8 @@ export class CrudTableController extends ListingDisplayController<any> {
         }
     }
 }
+
+export function addServices(services: controller.ServiceCollection) {
+    services.tryAddTransient(CrudTableController, CrudTableController);
+    services.tryAddSharedInstance(ListingDisplayOptions, new ListingDisplayOptions());
+}

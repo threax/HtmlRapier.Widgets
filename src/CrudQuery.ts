@@ -1,4 +1,5 @@
 import * as events from 'hr.eventdispatcher';
+import * as controller from 'hr.controller';
 
 export class QueryEventArgs {
     private _query: any;
@@ -54,4 +55,10 @@ export abstract class ICrudQueryComponent {
     }
 
     public abstract setupQuery(query: any): void;
+}
+
+export function addServices(services: controller.ServiceCollection) {
+    services.tryAddShared(CrudQueryManager, s => {
+        return new CrudQueryManager();
+    });
 }

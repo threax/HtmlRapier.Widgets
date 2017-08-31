@@ -67,3 +67,7 @@ export class CrudSearch extends ICrudQueryComponent {
         }
     }
 }
+
+export function addServices(services: controller.ServiceCollection) {
+    services.tryAddTransient(CrudSearch, CrudSearch);
+}

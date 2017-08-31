@@ -165,3 +165,35 @@ export class CrudItemEditorController{
         }
     }
 }
+
+export function AddServices(services: controller.ServiceCollection) {
+    //Register all types of crud item editor, the user can ask for what they need when they build their page
+    //Undefined id acts as both add and update, by default the options and extensions are shared with all editors, unless otherwise specified
+    services.tryAddSharedInstance(CrudItemEditorControllerOptions, new CrudItemEditorControllerOptions());
+    services.tryAddSharedInstance(CrudItemEditorControllerExtensions, new CrudItemEditorControllerExtensions());
+    services.tryAddShared(CrudItemEditorController,
+        s => {
+            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), s.getRequiredService(CrudItemEditorControllerOptions))
+        });
+
+    //Add Item Editor
+    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorControllerExtensions, s => s.getRequiredService(CrudItemEditorControllerExtensions));
+    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorControllerOptions, s => s.getRequiredService(CrudItemEditorControllerOptions));
+    services.tryAddSharedId(CrudItemEditorType.Add, CrudItemEditorController,
+        s => {
+            var options = s.getRequiredServiceId(CrudItemEditorType.Add, CrudItemEditorControllerOptions);
+            var customOptions = Object.create(options);
+            customOptions.type = CrudItemEditorType.Add;
+            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Add, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
+        });
+
+    //Update item editor
+    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorControllerExtensions, s => s.getRequiredService(CrudItemEditorControllerExtensions));
+    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorControllerOptions, s => s.getRequiredService(CrudItemEditorControllerOptions));
+    services.tryAddSharedId(CrudItemEditorType.Update, CrudItemEditorController, s => { 
+            var options = s.getRequiredServiceId(CrudItemEditorType.Update, CrudItemEditorControllerOptions);
+            var customOptions = Object.create(options);
+            customOptions.type = CrudItemEditorType.Update;
+            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Update, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
+        });
+}

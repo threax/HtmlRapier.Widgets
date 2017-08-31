@@ -88,3 +88,7 @@ export class CrudPageNumbers extends ICrudQueryComponent {
         }
     }
 }
+
+export function addServices(services: controller.ServiceCollection) {
+    services.tryAddTransient(CrudPageNumbers, CrudPageNumbers);
+}
