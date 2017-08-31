@@ -166,7 +166,7 @@ export class CrudItemEditorController{
     }
 }
 
-export function AddServices(services: controller.ServiceCollection) {
+export function addServices(services: controller.ServiceCollection) {
     //Register all types of crud item editor, the user can ask for what they need when they build their page
     //Undefined id acts as both add and update, by default the options and extensions are shared with all editors, unless otherwise specified
     services.tryAddSharedInstance(CrudItemEditorControllerOptions, new CrudItemEditorControllerOptions());

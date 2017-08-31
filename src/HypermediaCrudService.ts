@@ -594,5 +594,5 @@ export function addServices(services: di.ServiceCollection) {
     services.tryAddShared(crudPage.ICrudService, s => {
         return new HypermediaCrudService(s.getRequiredService(HypermediaPageInjector), s.getService(deeplink.IDeepLinkManager));
     });
-    crudPage.AddServices(services);
+    crudPage.addServices(services);
 }

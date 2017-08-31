@@ -23,10 +23,10 @@ export { CrudTableController } from 'hr.widgets.CrudTableController';
  * so you can make instances of those without registering them.
  * @param {controller.ServiceCollection} services The service collection to add services to.
  */
-export function AddServices(services: controller.ServiceCollection) {
+export function addServices(services: controller.ServiceCollection) {
     crudTable.addServices(services);
     crudRow.addServices(services);
-    crudItemEditor.AddServices(services);
+    crudItemEditor.addServices(services);
     crudPageNumbers.addServices(services);
     crudSearch.addServices(services);
     crudQuery.addServices(services);
