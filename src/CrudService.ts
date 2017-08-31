@@ -48,11 +48,16 @@ export class DataLoadingEventArgs {
     }
 }
 
+export class CrudDataModifiedEventArgs {
+
+}
+
 export abstract class ICrudService {
     private showItemEditorDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
     private showAddItemDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
     private closeItemEditorDispatcher = new events.ActionEventDispatcher<void>();
     private dataLoadingDispatcher = new events.ActionEventDispatcher<DataLoadingEventArgs>();
+    private crudDataModifiedDispatcher = new events.ActionEventDispatcher<CrudDataModifiedEventArgs>();
 
     /**
      * This function will return the schema for adding an item. The default implementation will just return
@@ -235,5 +240,20 @@ export abstract class ICrudService {
      */
     protected fireDataLoadingEvent(args: DataLoadingEventArgs) {
         this.dataLoadingDispatcher.fire(args);
+    }
+
+    /**
+     * This event is fired when the service has changed some of its data.
+     */
+    public get crudDataModifiedEvent() {
+        return this.crudDataModifiedDispatcher.modifier;
+    }
+
+    /**
+     * Call this function to alert the crud page that crud data has changed.
+     * @param args The args
+     */
+    protected fireCrudDataModifiedEvent(args: CrudDataModifiedEventArgs) {
+        this.crudDataModifiedDispatcher.fire(args);
     }
 }

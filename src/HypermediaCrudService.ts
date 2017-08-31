@@ -4,6 +4,7 @@ import * as di from 'hr.di';
 export { CrudSearch, CrudPageNumbers, CrudTableController, CrudItemEditorController, CrudItemEditorType } from 'hr.widgets.CrudPage';
 import * as ep from 'hr.externalpromise';
 import * as deeplink from 'hr.deeplink';
+import * as crudService from 'hr.widgets.CrudService';
 
 export interface HypermediaPageInjectorOptions {
     /**
@@ -328,6 +329,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     private async finishAdd(data) {
         if (IsAddableCrudCollection(this.currentPage)) {
             await this.currentPage.add(data);
+            this.fireCrudDataModifiedEvent(new crudService.CrudDataModifiedEventArgs());
             this.refreshPage();
         }
     }
@@ -376,6 +378,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     private async finishEdit(data, item: HypermediaCrudDataResult) {
         if (IsHypermediaUpdatableResult(item)) {
             await item.update(data);
+            this.fireCrudDataModifiedEvent(new crudService.CrudDataModifiedEventArgs());
             this.refreshPage();
         }
     }
@@ -383,6 +386,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     public async del(item: HypermediaCrudDataResult) {
         if (IsHypermediaDeleteableResult(item)) {
             await item.delete();
+            this.fireCrudDataModifiedEvent(new crudService.CrudDataModifiedEventArgs());
             this.refreshPage();
         }
     }
