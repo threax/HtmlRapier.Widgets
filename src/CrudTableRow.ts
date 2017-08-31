@@ -35,6 +35,9 @@ export class CrudTableRowControllerExtensions {
     }
 }
 
+/**
+ * Controller for a row on the crud page, you can customize it by subclassing CrudTableRowControllerExtensions.
+ */
 export class CrudTableRowController {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, IConfirm, crudService.ICrudService, IAlert, controller.InjectControllerData, CrudTableRowControllerExtensions];
@@ -89,4 +92,11 @@ export class CrudTableRowController {
             }
         }
     }
+}
+
+export function addServices(services: controller.ServiceCollection) {
+    services.tryAddTransient(CrudTableRowControllerExtensions, s => new CrudTableRowControllerExtensions());
+    services.tryAddTransient(CrudTableRowController, CrudTableRowController);
+    services.tryAddShared(IConfirm, s => new BrowserConfirm());
+    services.tryAddShared(IAlert, s => new BrowserAlert());
 }

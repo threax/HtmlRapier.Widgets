@@ -12,8 +12,12 @@ import * as schema from 'hr.schema';
 import * as view from 'hr.view';
 import { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from 'hr.widgets.CrudService';
 export { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from 'hr.widgets.CrudService';
-import { CrudTableRowController, CrudTableRowControllerExtensions } from 'hr.widgets.CrudTableRow';
+import { CrudTableRowController, CrudTableRowControllerExtensions, addServices as addRowServices } from 'hr.widgets.CrudTableRow';
 export { CrudTableRowController, CrudTableRowControllerExtensions } from 'hr.widgets.CrudTableRow';
+import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from 'hr.widgets.CrudQuery';
+export { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from 'hr.widgets.CrudQuery';
+import { CrudSearch } from 'hr.widgets.CrudSearch';
+export { CrudSearch } from 'hr.widgets.CrudSearch';
 
 export enum CrudItemEditorType{
     Add = 1,
@@ -177,62 +181,6 @@ export class CrudItemEditorController{
     }
 }
 
-export class QueryEventArgs {
-    private _query: any;
-
-    constructor(query: any) {
-        this._query = query;
-    }
-
-    public get query() {
-        return this._query;
-    }
-}
-
-export class CrudQueryManager {
-    private loadPageDispatcher = new events.ActionEventDispatcher<QueryEventArgs>();
-    private components: ICrudQueryComponent[] = [];
-
-    public get loadPageEvent() {
-        return this.loadPageDispatcher.modifier;
-    }
-
-    public addComponent(component: ICrudQueryComponent) {
-        this.components.push(component);
-        component.loadPageEvent.add(a => this.fireLoadPageEvent());
-    }
-
-    private fireLoadPageEvent() {
-        var query = {};
-        for (var i = 0; i < this.components.length; ++i) {
-            this.components[i].setupQuery(query);
-        }
-        this.loadPageDispatcher.fire(new QueryEventArgs(query));
-    }
-
-    public setupQuery(): any {
-        var query = {};
-        for (var i = 0; i < this.components.length; ++i) {
-            this.components[i].setupQuery(query);
-        }
-        return query;
-    }
-}
-
-export abstract class ICrudQueryComponent {
-    private loadPageDispatcher = new events.ActionEventDispatcher<void>();
-
-    public get loadPageEvent() {
-        return this.loadPageDispatcher.modifier;
-    }
-
-    protected fireLoadPage() {
-        this.loadPageDispatcher.fire(undefined);
-    }
-
-    public abstract setupQuery(query: any): void;
-}
-
 interface PageNumberQuery {
     offset: number;
     limit: number;
@@ -319,71 +267,6 @@ export class CrudPageNumbers extends ICrudQueryComponent {
     }
 }
 
-export class CrudSearch extends ICrudQueryComponent {
-    public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ICrudService, CrudQueryManager];
-    }
-
-    private queryManager: CrudQueryManager;
-    private crudService: ICrudService;
-    private form: controller.IForm<any>;
-
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager) {
-        super();
-        this.crudService = crudService;
-        this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
-        this.queryManager = queryManager;
-        this.queryManager.addComponent(this);
-        this.form = new form.NeedsSchemaForm(bindings.getForm<any>("input"));
-        this.setup(bindings, crudService);
-    }
-
-    private async setup(bindings: controller.BindingCollection, crudService: ICrudService) {
-        var schema: any = await crudService.getSearchSchema();
-        //Look for x-ui-search properties that are true
-        var properties = schema.properties;
-        if (properties) {
-            for (var key in properties) {
-                var prop = properties[key];
-                if (prop["x-ui-search"] !== true) {
-                    delete properties[key]; //Delete all properties that do not have x-ui-search set.
-                }
-            }
-        }
-
-        this.form.setSchema(schema);
-    }
-
-    public setupQuery(query: any): void {
-        var searchQuery = this.form.getData();
-        if (searchQuery !== null) {
-            for (var key in searchQuery) {
-                if (query[key] === undefined) {
-                    query[key] = searchQuery[key];
-                }
-            }
-        }
-    }
-
-    public submit(evt: Event) {
-        evt.preventDefault();
-        this.crudService.getPage(this.queryManager.setupQuery());
-    }
-
-    public setData(pageData: any): void {
-        this.form.setData(this.crudService.getSearchObject(pageData));
-    }
-
-    private async handlePageLoad(promise: Promise<any>) {
-        try {
-            this.setData(await promise);
-        }
-        catch (err) {
-            console.log("Error loading crud table data for search. Message: " + err.message);
-        }
-    }
-}
-
 export class CrudTableController extends ListingDisplayController<any> {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder];
@@ -464,11 +347,8 @@ export class CrudTableController extends ListingDisplayController<any> {
 export function AddServices(services: controller.ServiceCollection) {
     services.tryAddTransient(CrudTableController, CrudTableController);
     services.tryAddSharedInstance(ListingDisplayOptions, new ListingDisplayOptions());
-    services.tryAddTransient(CrudTableRowControllerExtensions, s => new CrudTableRowControllerExtensions());
-    services.tryAddTransient(CrudTableRowController, CrudTableRowController);
-    services.tryAddShared(IConfirm, s => new BrowserConfirm());
-    services.tryAddShared(IAlert, s => new BrowserAlert());
-    
+    addRowServices(services);
+
     //Register all types of crud item editor, the user can ask for what they need when they build their page
     //Undefined id acts as both add and update, by default the options and extensions are shared with all editors, unless otherwise specified
     services.tryAddSharedInstance(CrudItemEditorControllerOptions, new CrudItemEditorControllerOptions());
