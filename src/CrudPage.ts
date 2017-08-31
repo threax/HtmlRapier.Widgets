@@ -1,6 +1,6 @@
 import * as controller from 'hr.controller';
 export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
-export { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from 'hr.widgets.CrudService';
+export { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs, CrudDataModifiedEventArgs } from 'hr.widgets.CrudService';
 import * as crudRow from 'hr.widgets.CrudTableRow';
 export { CrudTableRowController, CrudTableRowControllerExtensions } from 'hr.widgets.CrudTableRow';
 import * as crudQuery from 'hr.widgets.CrudQuery';
