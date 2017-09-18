@@ -12,7 +12,7 @@ export { CrudItemEditorController, CrudItemEditorControllerExtensions, CrudItemE
 import * as crudPageNumbers from 'hr.widgets.CrudPageNumbers';
 export { CrudPageNumbers } from 'hr.widgets.CrudPageNumbers';
 import * as crudTable from 'hr.widgets.CrudTableController';
-export { CrudTableController } from 'hr.widgets.CrudTableController';
+export { CrudTableController, CrudTableControllerExtensions } from 'hr.widgets.CrudTableController';
 
 /**
  * Setup the services to use a crud page in the given service collection. This will

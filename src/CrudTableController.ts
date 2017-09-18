@@ -5,9 +5,19 @@ import { CrudQueryManager } from 'hr.widgets.CrudQuery';
 import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
 import * as view from 'hr.view';
 
+export class CrudTableControllerExtensions {
+    public getVariant(item: any): string {
+        return null;
+    }
+
+    public getDisplayObject(display: any, original: any): any {
+        return display;
+    }
+}
+
 export class CrudTableController extends ListingDisplayController<any> {
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder];
+        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder, CrudTableControllerExtensions];
     }
 
     private crudService: ICrudService;
@@ -15,7 +25,7 @@ export class CrudTableController extends ListingDisplayController<any> {
     private addToggle: controller.OnOffToggle;
     private lookupDisplaySchema = true;
 
-    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder) {
+    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder, private extensions: CrudTableControllerExtensions) {
         super(bindings, options);
 
         this.queryManager = queryManager;
@@ -37,10 +47,11 @@ export class CrudTableController extends ListingDisplayController<any> {
         this.clearData();
         var listingCreator = this.builder.createOnCallback(CrudTableRowController);
         for (var i = 0; i < items.length; ++i) {
-            var itemData = this.crudService.getListingDisplayObject(items[i]);
+            var item = items[i];
+            var itemData = this.extensions.getDisplayObject(this.crudService.getListingDisplayObject(item), item);
             this.appendData(itemData, (b, d) => {                
-                listingCreator(b, items[i]);
-            });
+                listingCreator(b, item);
+            }, v => this.extensions.getVariant(item));
         }
         this.showMain();
     }
@@ -74,6 +85,7 @@ export class CrudTableController extends ListingDisplayController<any> {
 }
 
 export function addServices(services: controller.ServiceCollection) {
+    services.tryAddTransient(CrudTableControllerExtensions, s => new CrudTableControllerExtensions());
     services.tryAddTransient(CrudTableController, CrudTableController);
     services.tryAddSharedInstance(ListingDisplayOptions, new ListingDisplayOptions());
 }

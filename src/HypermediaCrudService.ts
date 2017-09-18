@@ -377,7 +377,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     private async finishEdit(data, item: HypermediaCrudDataResult) {
         if (IsHypermediaUpdatableResult(item)) {
             await item.update(data);
-            this.fireCrudDataModifiedEvent(new crudService.CrudDataModifiedEventArgs());
+            this.fireCrudDataModifiedEvent(new crudPage.CrudDataModifiedEventArgs());
             this.refreshPage();
         }
     }
@@ -385,7 +385,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     public async del(item: HypermediaCrudDataResult) {
         if (IsHypermediaDeleteableResult(item)) {
             await item.delete();
-            this.fireCrudDataModifiedEvent(new crudService.CrudDataModifiedEventArgs());
+            this.fireCrudDataModifiedEvent(new crudPage.CrudDataModifiedEventArgs());
             this.refreshPage();
         }
     }

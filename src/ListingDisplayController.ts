@@ -1,6 +1,7 @@
 ﻿import * as controller from 'hr.controller';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as view from 'hr.view';
+import * as components from 'hr.components';
 
 export class ListingDisplayOptions {
     listingModelName: string = "listing";
@@ -10,8 +11,9 @@ export class ListingDisplayOptions {
     setLoadingOnStart: boolean = true;
 }
 
-export type ListingItemCreatedCallback<T> = (bindings: controller.BindingCollection, data: T) => void;
-
+/**
+ * This superclass is pointless, should get rid of it
+ */
 export class ListingDisplayController<T> {
     private listingModel: controller.IView<any>;
     private lifecycle: MainLoadErrorLifecycle;
@@ -33,8 +35,8 @@ export class ListingDisplayController<T> {
         this.listingModel.setFormatter(formatter);
     }
 
-    public appendData(data: T | T[], createdCallback?: ListingItemCreatedCallback<T>) {
-        this.listingModel.appendData(data, createdCallback);
+    public appendData(data: T | T[], createdCallback?: components.CreatedCallback<T>, variantFinderCallback?: components.VariantFinderCallback<T>) {
+        this.listingModel.appendData(data, createdCallback, variantFinderCallback);
     }
 
     public showMain() {
