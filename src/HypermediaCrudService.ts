@@ -186,7 +186,7 @@ export function IsHypermediaDeleteableResult(i: HypermediaCrudDataResult): i is 
 
 export interface HypermediaCrudCollection {
     data: pageWidget.OffsetLimitTotal;
-    items: any;
+    items: any[];
 
     refresh();
     canRefresh();
