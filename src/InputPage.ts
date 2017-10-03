@@ -3,159 +3,125 @@ import * as events from 'hr.eventdispatcher';
 import * as hal from 'hr.halcyon.EndpointClient';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as form from 'hr.form';
+import { JsonSchema } from 'hr.schema';
+import * as error from 'hr.error';
 
-export class SetItemSchemaEventArgs {
-    constructor(public schema: any) {
-        
+export class CrudItemEditorControllerOptions {
+    public static get InjectorArgs(): controller.InjectableArgs {
+        return [];
     }
+
+    public mainErrorToggleName = "mainError";
+    public mainErrorViewName = "mainError";
+    public mainToggleName = "main";
+    public loadToggleName = "load";
+    public errorToggleName = "error";
+    public formName = "input";
+    public completeToggleName = "complete";
 }
-
-export class ShowItemEditorEventArgs {
-    data: any;
-    update: ItemUpdatedCallback
-
-    constructor(data: any, update: ItemUpdatedCallback) {
-        this.data = data;
-        this.update = update;
-    }
-}
-
-export class DataLoadingEventArgs {
-    private _dataPromise: Promise<any>;
-
-    constructor(dataPromise: Promise<any>) {
-        this._dataPromise = dataPromise;
-    }
-
-    public get data(): Promise<any> {
-        return this._dataPromise;
-    }
-}
-
-export type ItemUpdatedCallback = (data: any) => Promise<any>;
 
 export abstract class IInputService {
-    private showItemEditorDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
-    private setItemSchemaDispatcher = new events.ActionEventDispatcher<SetItemSchemaEventArgs>();
-    private inputCompleteDispatcher = new events.ActionEventDispatcher<void>();
-    private dataLoadingDispatcher = new events.ActionEventDispatcher<void>();
+    public abstract getSchema(): Promise<JsonSchema>;
 
-    public abstract canNext(): boolean;
+    public abstract getData(): Promise<{} | undefined>;
 
-    public abstract next(): void;
+    public abstract submitData(data: {}): Promise<boolean>;
+}
 
-    public abstract canPrevious(): boolean;
-
-    public abstract previous(): void;
-
-    public get showItemEditorEvent() {
-        return this.showItemEditorDispatcher.modifier;
+export class InputItemEditorControllerExtensions {
+    public static get InjectorArgs(): controller.InjectableArgs {
+        return [];
     }
 
-    protected fireShowItemEditorEvent(args: ShowItemEditorEventArgs) {
-        this.showItemEditorDispatcher.fire(args);
-    }
+    /**
+     * This function is called when the data is finished being input and the InputItemEditorController is about to display
+     * the complete page.
+     * @param data
+     * @param source
+     */
+    public async inputCompleted(data: any, source: InputItemEditorController): Promise<void> {
 
-    public get setItemSchema() {
-        return this.setItemSchemaDispatcher.modifier;
-    }
-
-    protected fireSetItemSchema(args: SetItemSchemaEventArgs) {
-        this.setItemSchemaDispatcher.fire(args);
-    }
-
-    public get dataLoading() {
-        return this.dataLoadingDispatcher.modifier;
-    }
-
-    protected fireDataLoading() {
-        this.dataLoadingDispatcher.fire(undefined);
-    }
-
-    public get inputCompleted() {
-        return this.inputCompleteDispatcher.modifier;
-    }
-
-    protected fireInputCompleted() {
-        this.inputCompleteDispatcher.fire(undefined);
     }
 }
 
 export class InputItemEditorController {
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, IInputService];
+        return [controller.BindingCollection,
+                IInputService,
+                InputItemEditorControllerExtensions
+                /*Options here, must call constructor manually unless defaults are ok. Leave options last.*/];
     }
 
     private completeToggle: controller.OnOffToggle;
     private lifecycle: MainLoadErrorLifecycle;
     private form: controller.IForm<any>;
-    private update: ItemUpdatedCallback;
+    private mainErrorToggle: controller.OnOffToggle;
+    private mainErrorView: controller.IView<Error>;
 
-    constructor(bindings: controller.BindingCollection, inputService: IInputService) {
-        this.completeToggle = bindings.getToggle("complete");
+    constructor(bindings: controller.BindingCollection, private inputService: IInputService, private extensions: InputItemEditorControllerExtensions, options: CrudItemEditorControllerOptions) {
+        if (options === undefined) {
+            options = new CrudItemEditorControllerOptions();
+        }
+
+        this.completeToggle = bindings.getToggle(options.completeToggleName);
         this.completeToggle.off();
-        this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>("input"));
+        this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>(options.formName));
+        this.mainErrorToggle = bindings.getToggle(options.mainErrorToggleName);
+        this.mainErrorView = bindings.getView<Error>(options.mainErrorViewName);
 
         this.lifecycle = new MainLoadErrorLifecycle(
-            bindings.getToggle("main"),
-            bindings.getToggle("load"),
-            bindings.getToggle("error"),
+            bindings.getToggle(options.mainToggleName),
+            bindings.getToggle(options.loadToggleName),
+            bindings.getToggle(options.errorToggleName),
             true);
 
-        inputService.dataLoading.add(arg => {
-            this.lifecycle.showLoad();
-        });
-        inputService.showItemEditorEvent.add(arg => {
-            this.update = arg.update;
-            this.form.setData(arg.data);
+        this.setup();
+    }
+
+    private async setup(): Promise<void> {
+        this.lifecycle.showLoad();
+        try {
+            var data = await this.inputService.getData();
+            var schema = await this.inputService.getSchema();
+
+            this.form.setSchema(schema);
+            this.form.setData(data);
+
             this.lifecycle.showMain();
-        });
-        inputService.setItemSchema.add(arg => {
-            this.form.setSchema(arg.schema);
-        });
-        inputService.inputCompleted.add(() => {
-            //this.setSchema({});
-            this.lifecycle.showOther(this.completeToggle);
-        });
+        }
+        catch (err) {
+            this.lifecycle.showError(err);
+        }
+    }
+
+    public async submit(evt: Event): Promise<void> {
+        evt.preventDefault();
+        this.lifecycle.showLoad();
+        try {
+            var data = this.form.getData();
+            if (await this.inputService.submitData(data)) {
+                this.setup();
+            }
+            else {
+                await this.extensions.inputCompleted(data, this);
+                this.lifecycle.showOther(this.completeToggle);
+            }
+        }
+        catch (err) {
+            if (error.isFormErrors(err)) {
+                this.form.setError(err);
+                this.lifecycle.showMain();
+                this.mainErrorView.setData(err);
+                this.mainErrorToggle.on();
+            }
+            else {
+                this.lifecycle.showError(err);
+            }
+        }
     }
 }
 
-export class InputPagesController {
-    public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, IInputService];
-    }
-
-    private nextToggle: controller.OnOffToggle;
-    private previousToggle: controller.OnOffToggle;
-
-    private service: IInputService;
-
-    public constructor(bindings: controller.BindingCollection, service: IInputService) {
-        this.service = service;
-        this.nextToggle = bindings.getToggle("next");
-        this.nextToggle.off();
-        this.previousToggle = bindings.getToggle("previous");
-        this.previousToggle.off();
-        service.showItemEditorEvent.add(d => this.setState());
-    }
-
-    private setState() {
-        this.nextToggle.mode = this.service.canNext();
-        this.previousToggle.mode = this.service.canPrevious();
-    }
-
-    public next(evt: Event) {
-        evt.preventDefault();
-        this.service.next();
-    }
-
-    public previous(evt: Event) {
-        evt.preventDefault();
-        this.service.previous();
-    }
-}
-
-interface HypermediaInputResult {
+export interface HypermediaInputResult {
     data: any;
 
     save(data: any): Promise<HypermediaInputResult>;
@@ -187,51 +153,38 @@ function IsNextResult(t: any): t is HypermediaNextInputResult {
     return t && (<HypermediaNextInputResult>t).canNext !== undefined && (<HypermediaNextInputResult>t).next !== undefined;
 }
 
-export abstract class HypermediaInputService extends IInputService {
-    private page: HypermediaInputResult;
+export abstract class HypermediaInputServiceInjector {
+    public abstract getStart(): Promise<HypermediaInputResult>;
+}
 
-    public canNext(): boolean {
-        return IsNextResult(this.page) && this.page.canNext();
+export class HypermediaInputService extends IInputService {
+    public static get InjectorArgs(): controller.InjectableArgs {
+        return [HypermediaInputServiceInjector];
     }
 
-    public next() {
-        if (IsNextResult(this.page)) {
-            this.setPage(this.page.next());
-        }
+    private current: HypermediaInputResult = null;
+
+    constructor(private injector: HypermediaInputServiceInjector) {
+        super();
     }
 
-    public canPrevious(): boolean {
-        return IsPreviousResult(this.page) && this.page.canPrevious();
+    public async getSchema(): Promise<JsonSchema> {
+        if (this.current !== null) {
+            return (await this.current.getSaveDocs()).requestSchema;
+        }
+        return null;
     }
 
-    public previous() {
-        if (IsPreviousResult(this.page)) {
-            this.setPage(this.page.previous());
+    public async getData(): Promise<{} | undefined> {
+        if (this.current === null) {
+            this.current = await this.injector.getStart();
         }
+        return this.current.data;
     }
 
-    protected async setPage(pagePromise: Promise<HypermediaInputResult>) {
-        this.fireDataLoading();
-        this.page = await pagePromise;
-        if (this.page.canSave()) {
-            var docs = await this.page.getSaveDocs();
-            this.fireSetItemSchema(new SetItemSchemaEventArgs(docs.requestSchema));
-            this.fireShowItemEditorEvent(new ShowItemEditorEventArgs(this.page.data, d => this.setData(d)));
-        }
-        else {
-            throw new Error("Cannot save input. Does the user have permission?");
-        }
-    }
-
-    protected async setData(data: any) {
-        var savedResult = await this.page.save(data);
-        if (IsNextResult(savedResult) && savedResult.canNext()) {
-            var next = savedResult.next();
-            this.setPage(next);
-        }
-        else {
-            this.fireInputCompleted();
-        }
+    public async submitData(data: {}): Promise<boolean> {
+        this.current = await this.current.save(data);
+        return IsNextResult(this.current);
     }
 }
 
@@ -241,6 +194,7 @@ export abstract class HypermediaInputService extends IInputService {
  * @param services
  */
 export function AddServices(services: controller.ServiceCollection) {
+    services.tryAddTransient(InputItemEditorControllerExtensions, InputItemEditorControllerExtensions);
     services.tryAddTransient(InputItemEditorController, InputItemEditorController);
-    services.tryAddTransient(InputPagesController, InputPagesController);
+    services.tryAddTransient(IInputService, HypermediaInputService);
 }
