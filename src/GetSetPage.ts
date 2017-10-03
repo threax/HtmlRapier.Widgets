@@ -6,6 +6,13 @@ import * as form from 'hr.form';
 import { JsonSchema } from 'hr.schema';
 import * as error from 'hr.error';
 
+/**
+ * The config for the controller from markup.
+ */
+interface GetSetControllerConfig {
+    keepform: string;
+}
+
 export class GetSetControllerOptions {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [];
@@ -18,7 +25,6 @@ export class GetSetControllerOptions {
     public errorToggleName = "error";
     public formName = "input";
     public completeToggleName = "complete";
-    public keepFormVisibleAfterSubmit = true;
 }
 
 export abstract class IGetSetService {
@@ -65,7 +71,9 @@ export class GetSetController {
             options = new GetSetControllerOptions();
         }
 
-        this.keepMainFormVisible = options.keepFormVisibleAfterSubmit;
+        var config = bindings.getConfig<GetSetControllerConfig>();
+
+        this.keepMainFormVisible = config.keepform !== "false";
         this.completeToggle = bindings.getToggle(options.completeToggleName);
         this.completeToggle.off();
         this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>(options.formName));
