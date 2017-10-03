@@ -103,6 +103,7 @@ export class GetSetController {
         evt.preventDefault();
         this.lifecycle.showLoad();
         this.mainErrorToggle.off();
+        this.completeToggle.off();
         try {
             var data = this.form.getData();
             await this.inputService.setData(data);
