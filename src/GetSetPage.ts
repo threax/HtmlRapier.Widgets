@@ -6,7 +6,7 @@ import * as form from 'hr.form';
 import { JsonSchema } from 'hr.schema';
 import * as error from 'hr.error';
 
-export class CrudItemEditorControllerOptions {
+export class GetSetControllerOptions {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [];
     }
@@ -18,17 +18,18 @@ export class CrudItemEditorControllerOptions {
     public errorToggleName = "error";
     public formName = "input";
     public completeToggleName = "complete";
+    public keepFormVisibleAfterSubmit = true;
 }
 
-export abstract class IInputService {
+export abstract class IGetSetService {
     public abstract getSchema(): Promise<JsonSchema>;
 
     public abstract getData(): Promise<{} | undefined>;
 
-    public abstract submitData(data: {}): Promise<boolean>;
+    public abstract setData(data: {}): Promise<void>;
 }
 
-export class InputItemEditorControllerExtensions {
+export class GetSetControllerExtensions {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [];
     }
@@ -39,16 +40,16 @@ export class InputItemEditorControllerExtensions {
      * @param data
      * @param source
      */
-    public async inputCompleted(data: any, source: InputItemEditorController): Promise<void> {
+    public async inputCompleted(data: any, source: GetSetController): Promise<void> {
 
     }
 }
 
-export class InputItemEditorController {
+export class GetSetController {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection,
-                IInputService,
-                InputItemEditorControllerExtensions
+                IGetSetService,
+                GetSetControllerExtensions
                 /*Options here, must call constructor manually unless defaults are ok. Leave options last.*/];
     }
 
@@ -57,12 +58,14 @@ export class InputItemEditorController {
     private form: controller.IForm<any>;
     private mainErrorToggle: controller.OnOffToggle;
     private mainErrorView: controller.IView<Error>;
+    private keepMainFormVisible: boolean;
 
-    constructor(bindings: controller.BindingCollection, private inputService: IInputService, private extensions: InputItemEditorControllerExtensions, options: CrudItemEditorControllerOptions) {
+    constructor(bindings: controller.BindingCollection, private inputService: IGetSetService, private extensions: GetSetControllerExtensions, options: GetSetControllerOptions) {
         if (options === undefined) {
-            options = new CrudItemEditorControllerOptions();
+            options = new GetSetControllerOptions();
         }
 
+        this.keepMainFormVisible = options.keepFormVisibleAfterSubmit;
         this.completeToggle = bindings.getToggle(options.completeToggleName);
         this.completeToggle.off();
         this.form = new form.NeedsSchemaForm<any>(bindings.getForm<any>(options.formName));
@@ -74,6 +77,8 @@ export class InputItemEditorController {
             bindings.getToggle(options.loadToggleName),
             bindings.getToggle(options.errorToggleName),
             true);
+
+        bindings.setListener(this.extensions);
 
         this.setup();
     }
@@ -99,11 +104,15 @@ export class InputItemEditorController {
         this.lifecycle.showLoad();
         try {
             var data = this.form.getData();
-            if (await this.inputService.submitData(data)) {
-                this.setup();
+            await this.inputService.setData(data);
+            await this.extensions.inputCompleted(data, this);
+            if (this.keepMainFormVisible) {
+                data = await this.inputService.getData()
+                this.form.setData(data);
+                this.lifecycle.showMain();
+                this.completeToggle.on();
             }
             else {
-                await this.extensions.inputCompleted(data, this);
                 this.lifecycle.showOther(this.completeToggle);
             }
         }
@@ -124,53 +133,33 @@ export class InputItemEditorController {
 export interface HypermediaInputResult {
     data: any;
 
-    save(data: any): Promise<HypermediaInputResult>;
+    set(data: any): Promise<HypermediaInputResult>;
 
-    canSave(): boolean;
+    canSet(): boolean;
 
-    getSaveDocs(): Promise<hal.HalEndpointDoc>;
+    getSetDocs(): Promise<hal.HalEndpointDoc>;
 
-    hasSaveDocs(): boolean;
+    hasSetDocs(): boolean;
 }
 
-interface HypermediaPreviousInputResult {
-    previous(): Promise<HypermediaInputResult>;
-
-    canPrevious(): boolean;
-}
-
-function IsPreviousResult(t: any): t is HypermediaPreviousInputResult {
-    return t && (<HypermediaPreviousInputResult>t).canPrevious !== undefined && (<HypermediaPreviousInputResult>t).previous !== undefined;
-}
-
-interface HypermediaNextInputResult {
-    next(): Promise<HypermediaInputResult>;
-
-    canNext(): boolean;
-}
-
-function IsNextResult(t: any): t is HypermediaNextInputResult {
-    return t && (<HypermediaNextInputResult>t).canNext !== undefined && (<HypermediaNextInputResult>t).next !== undefined;
-}
-
-export abstract class HypermediaInputServiceInjector {
+export abstract class HypermediaGetSetInjector {
     public abstract getStart(): Promise<HypermediaInputResult>;
 }
 
-export class HypermediaInputService extends IInputService {
+export class HypermediaGetSetService extends IGetSetService {
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [HypermediaInputServiceInjector];
+        return [HypermediaGetSetInjector];
     }
 
     private current: HypermediaInputResult = null;
 
-    constructor(private injector: HypermediaInputServiceInjector) {
+    constructor(private injector: HypermediaGetSetInjector) {
         super();
     }
 
     public async getSchema(): Promise<JsonSchema> {
         if (this.current !== null) {
-            return (await this.current.getSaveDocs()).requestSchema;
+            return (await this.current.getSetDocs()).requestSchema;
         }
         return null;
     }
@@ -182,9 +171,8 @@ export class HypermediaInputService extends IInputService {
         return this.current.data;
     }
 
-    public async submitData(data: {}): Promise<boolean> {
-        this.current = await this.current.save(data);
-        return IsNextResult(this.current);
+    public async setData(data: {}): Promise<void> {
+        this.current = await this.current.set(data);
     }
 }
 
@@ -194,7 +182,7 @@ export class HypermediaInputService extends IInputService {
  * @param services
  */
 export function AddServices(services: controller.ServiceCollection) {
-    services.tryAddTransient(InputItemEditorControllerExtensions, InputItemEditorControllerExtensions);
-    services.tryAddTransient(InputItemEditorController, InputItemEditorController);
-    services.tryAddTransient(IInputService, HypermediaInputService);
+    services.tryAddTransient(GetSetControllerExtensions, GetSetControllerExtensions);
+    services.tryAddTransient(GetSetController, GetSetController);
+    services.tryAddTransient(IGetSetService, HypermediaGetSetService);
 }
