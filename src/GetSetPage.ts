@@ -102,6 +102,7 @@ export class GetSetController {
     public async submit(evt: Event): Promise<void> {
         evt.preventDefault();
         this.lifecycle.showLoad();
+        this.mainErrorToggle.off();
         try {
             var data = this.form.getData();
             await this.inputService.setData(data);
