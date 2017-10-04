@@ -113,7 +113,7 @@ export class GetSetController {
         this.mainErrorToggle.off();
         this.completeToggle.off();
         try {
-            var data = this.form.getData();
+            var data = this.form.getData() || {}; //Form returns null, but to get errors must send something
             await this.inputService.setData(data);
             await this.extensions.inputCompleted(data, this);
             if (this.keepMainFormVisible) {
