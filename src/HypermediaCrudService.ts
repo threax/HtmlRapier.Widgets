@@ -69,7 +69,7 @@ export abstract class HypermediaPageInjector {
      * Create a query that looks up an item by its id. The id that needs to be stored
      * will be passed in as a string, since that can represent any id type.
      */
-    public createIdQuery(id: string): {} | null{
+    public createIdQuery(id: string): {} | null {
         return null;
     }
 
@@ -83,9 +83,9 @@ export abstract class HypermediaPageInjector {
     public async getById(id: string): Promise<HypermediaCrudDataResult | null> {
         var query = this.createIdQuery(id);
         var retVal = null;
-        if(query !== null){
+        if (query !== null) {
             var results = await this.list(query);
-            if(results.data.total > 0){
+            if (results.data.total > 0) {
                 retVal = results.items[0];
             }
         }
@@ -111,10 +111,10 @@ export abstract class HypermediaChildPageInjector<T extends HypermediaCrudDataRe
     private parentResult: T;
 
     constructor(options?: HypermediaPageInjectorOptions) {
-        if(options === undefined){
+        if (options === undefined) {
             options = {};
         }
-        else{
+        else {
             options = Object.create(options);
         }
         options.usePageQueryForFirstLoad = false;
@@ -135,7 +135,7 @@ export abstract class AbstractHypermediaPageInjector extends HypermediaPageInjec
         super(options);
     }
 
-    public getDeletePrompt(item: HypermediaCrudDataResult): string{
+    public getDeletePrompt(item: HypermediaCrudDataResult): string {
         return "Are you sure you want to delete this item?";
     }
 }
@@ -145,7 +145,7 @@ export abstract class AbstractHypermediaChildPageInjector<T extends HypermediaCr
         super(options);
     }
 
-    public getDeletePrompt(item: HypermediaCrudDataResult): string{
+    public getDeletePrompt(item: HypermediaCrudDataResult): string {
         return "Are you sure you want to delete this item?";
     }
 }
@@ -261,7 +261,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
 
     constructor(private pageInjector: HypermediaPageInjector, private linkManager: deeplink.IDeepLinkManager) {
         super();
-        if(!this.linkManager){
+        if (!this.linkManager) {
             this.linkManager = new deeplink.NullDeepLinkManager();
         }
         this.linkManager.registerHandler(this.pageInjector.uniqueName, this);
@@ -334,7 +334,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     }
 
     private async itemEditorClosed() {
-        if(this.currentPage && this.allowCloseHistory){
+        if (this.currentPage && this.allowCloseHistory) {
             this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
         }
     }
@@ -347,14 +347,14 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         await this.beginEdit(item, true);
     }
 
-    private async beginEdit(item: HypermediaCrudDataResult, recordHistory: boolean){
-        if(recordHistory){
+    private async beginEdit(item: HypermediaCrudDataResult, recordHistory: boolean) {
+        if (recordHistory) {
             var itemId = this.pageInjector.getItemId(item);
-            if(itemId !== null){
+            if (itemId !== null) {
                 this.linkManager.pushState(this.pageInjector.uniqueName, "Edit/" + itemId, null);
             }
         }
-    
+
         if (IsHypermediaRefreshableResult(item) && item.canRefresh()) {
             item = await item.refresh();
         }
@@ -406,15 +406,16 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         var replacePageUrl = true;
         if (this.pageInjector.usePageQueryForFirstLoad && this.initialLoad) { //No current page, use the url query instead of the one passed in
             var historyState = this.linkManager.getCurrentState();
-            if(historyState) {
+            if (historyState) {
                 query = historyState.query;
                 var itemId = this.getEditIdFromPath(historyState.inPagePath);
-                if(itemId !== null){
+                if (itemId !== null) {
                     replacePageUrl = false;
-                    var item = this.pageInjector.getById(itemId).then(r =>{
-                        if(r !== null){
+                    var item = this.pageInjector.getById(itemId).then(r => {
+                        if (r !== null) {
+                            this.linkManager.replaceState(this.pageInjector.uniqueName, "Edit/" + itemId, null);
                             this.beginEdit(r, false);
-                        } 
+                        }
                     });
                 }
             }
@@ -424,7 +425,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
             this.initialLoad = false;
             loadingPromise = loadingPromise
                 .then(r => {
-                    if(replacePageUrl){
+                    if (replacePageUrl) {
                         this.linkManager.replaceState(this.pageInjector.uniqueName, null, this.currentPage.data);
                     }
                     this.initialPageLoadPromise.resolve(r);
@@ -563,13 +564,13 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
 
     public async onPopState(args: deeplink.DeepLinkArgs) {
         var itemId = this.getEditIdFromPath(args.inPagePath);
-        if(itemId !== null) {
+        if (itemId !== null) {
             var item = await this.pageInjector.getById(itemId);
-            if(item !== null){
+            if (item !== null) {
                 this.beginEdit(item, false);
             }
         }
-        else{
+        else {
             var loadingPromise = this.getPageAsync(args.query, false);
             this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(loadingPromise));
             this.allowCloseHistory = false;
@@ -582,10 +583,10 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
      * Get the edit id of the current path, will be null if the current path is not an edit path.
      * @param inPagePath 
      */
-    private getEditIdFromPath(inPagePath: string): string | null{
-        if(inPagePath) {
+    private getEditIdFromPath(inPagePath: string): string | null {
+        if (inPagePath) {
             var split = inPagePath.split("/"); //Deep link paths will always start with a /, so add 1 to expected indices
-            if(split.length >=3 && split[1].toLowerCase() === "edit"){
+            if (split.length >= 3 && split[1].toLowerCase() === "edit") {
                 return split[2];
             }
         }
