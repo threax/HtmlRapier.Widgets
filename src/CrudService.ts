@@ -11,9 +11,10 @@ export class ShowItemEditorEventArgs {
     dataPromise: Promise<any>;
 
     /**
-     * The function to call to update the data.
+     * The function to call to update the data. Can be null, which means update
+     * cannot be performed.
      */
-    update: ItemUpdatedCallback;
+    update: ItemUpdatedCallback | null;
 
     /**
      * The function called when the item editor is closed. This might happen even if the data
@@ -28,7 +29,7 @@ export class ShowItemEditorEventArgs {
      */
     dataResult: any;
 
-    constructor(dataPromise: Promise<any>, update: ItemUpdatedCallback, dataResult?: any, closed?: ItemEditorClosedCallback) {
+    constructor(dataPromise: Promise<any>, update: ItemUpdatedCallback | null, dataResult?: any, closed?: ItemEditorClosedCallback) {
         this.dataPromise = dataPromise;
         this.update = update;
         this.dataResult = dataResult;

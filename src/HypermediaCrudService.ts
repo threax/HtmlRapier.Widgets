@@ -229,6 +229,16 @@ export function IsUpdateDocs(i: HypermediaCrudCollection): i is UpdateDocs {
         && (<UpdateDocs>i).getUpdateDocs !== undefined;
 }
 
+export interface GetDocs extends HypermediaCrudCollection {
+    hasGetDocs(): boolean;
+    getGetDocs(): Promise<any>;
+}
+
+export function IsGetDocs(i: HypermediaCrudCollection): i is GetDocs {
+    return (<GetDocs>i).hasGetDocs !== undefined
+        && (<GetDocs>i).getGetDocs !== undefined;
+}
+
 export interface SearchableCrudCollection extends HypermediaCrudCollection {
     hasListDocs(): boolean;
     getListDocs(): Promise<any>;
@@ -280,7 +290,18 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         }
 
         //If we can't get the update item docs, see if we can return add item docs
-        return this.getAddItemSchema();
+        var schema = await this.getAddItemSchema();
+        if (schema !== undefined) {
+            return schema;
+        }
+
+        //Finally return the schema to view the item with a get
+        if (IsGetDocs(this.currentPage)) {
+            if (this.currentPage.hasGetDocs()) {
+                var docs = await this.currentPage.getGetDocs();
+                return docs.responseSchema;
+            }
+        }
     }
 
     public async getAddItemSchema() {
@@ -358,16 +379,17 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (IsHypermediaRefreshableResult(item) && item.canRefresh()) {
             item = await item.refresh();
         }
-        var data = this.getEditObject(item);
-        this.editData(item, data);
+
+        var dataPromise = this.getEditObject(item);
+        var update: crudPage.ItemUpdatedCallback | null = null;
+        if (IsHypermediaUpdatableResult(item) && item.canUpdate()) {
+            update = a => this.finishEdit(a, item);
+        }
+        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(dataPromise, update, item, () => this.itemEditorClosed()));
     }
 
     public canEdit(item: HypermediaCrudDataResult): boolean {
         return IsHypermediaUpdatableResult(item) && item.canUpdate();
-    }
-
-    public editData(item: HypermediaCrudDataResult, dataPromise: Promise<any>) {
-        this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(dataPromise, a => this.finishEdit(a, item), item, () => this.itemEditorClosed()));
     }
 
     protected async getEditObject(item: HypermediaCrudDataResult) {

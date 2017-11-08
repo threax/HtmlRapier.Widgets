@@ -58,6 +58,10 @@ export class CrudTableRowController {
             var editToggle = bindings.getToggle("edit");
             editToggle.off();
         }
+        else {
+            var viewToggle = bindings.getToggle("view");
+            viewToggle.off();
+        }
 
         if (!this.crudService.canDel(data)) {
             var deleteToggle = bindings.getToggle("del");
@@ -70,6 +74,13 @@ export class CrudTableRowController {
     public edit(evt: Event) {
         evt.preventDefault();
         if(this.extensions.onEdit(this, this.data)) {
+            this.crudService.edit(this.data);
+        }
+    }
+
+    public view(evt: Event) {
+        evt.preventDefault();
+        if (this.extensions.onEdit(this, this.data)) {
             this.crudService.edit(this.data);
         }
     }

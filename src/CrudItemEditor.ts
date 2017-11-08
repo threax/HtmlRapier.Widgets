@@ -23,6 +23,7 @@ export class CrudItemEditorControllerOptions {
     public errorToggleName = "error";
     public activateLoadingOnStart = true;
     public type = CrudItemEditorType.Add | CrudItemEditorType.Update;
+    public viewOnlyToggleName = "viewOnly";
 }
 
 export class CrudItemEditorControllerExtensions {
@@ -51,6 +52,7 @@ export class CrudItemEditorController{
     private _autoClose: boolean = true;
     private mainErrorToggle: controller.OnOffToggle;
     private mainErrorView: controller.IView<Error>;
+    private viewOnlyToggle: controller.OnOffToggle;
 
     constructor(bindings: controller.BindingCollection,
         private extensions: CrudItemEditorControllerExtensions,
@@ -72,6 +74,8 @@ export class CrudItemEditorController{
             bindings.getToggle(options.errorToggleName),
             options.activateLoadingOnStart);
 
+        this.viewOnlyToggle = bindings.getToggle(options.viewOnlyToggleName);
+
         if((options.type & CrudItemEditorType.Add) === CrudItemEditorType.Add){
             crudService.showAddItemEvent.add(arg => {
                 this.showItemEditorHandler(arg);
@@ -91,6 +95,11 @@ export class CrudItemEditorController{
 
     public async submit(evt: Event): Promise<void> {
         evt.preventDefault();
+
+        if (this.updated === null) {
+            return;
+        }
+
         try {
             this.mainErrorToggle.off();
             this.lifecycle.showLoad();
@@ -137,6 +146,7 @@ export class CrudItemEditorController{
             this.lifecycle.showLoad();
             var data = await arg.dataPromise;
             this.updated = arg.update;
+            this.viewOnlyToggle.mode = this.updated === null;
             this.closed = arg.closed;
             this._form.setData(data);
             this.lifecycle.showMain();
@@ -158,7 +168,9 @@ export class CrudItemEditorController{
                 //This convers when the editor is for adding items
                 schema = await crudService.getAddItemSchema();
             }
-            this._form.setSchema(schema);
+            if (schema) {
+                this._form.setSchema(schema);
+            }
         }
         catch (err) {
             console.log("An error occured loading the schema for the CrudItemEditor. Message: " + err.message);
