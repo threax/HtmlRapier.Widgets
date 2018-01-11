@@ -427,7 +427,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     public getPage(query: any) {
         var replacePageUrl = true;
         if (this.pageInjector.usePageQueryForFirstLoad && this.initialLoad) { //No current page, use the url query instead of the one passed in
-            var historyState = this.linkManager.getCurrentState();
+            var historyState = this.linkManager.getCurrentState(query);
             if (historyState) {
                 query = historyState.query;
                 var itemId = this.getEditIdFromPath(historyState.inPagePath);
