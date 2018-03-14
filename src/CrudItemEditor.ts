@@ -36,7 +36,11 @@ export class CrudItemEditorControllerExtensions {
     }
 }
 
-export class CrudItemEditorController{
+export abstract class CrudItemEditorController {
+
+}
+
+export class FormCrudItemEditorController implements CrudItemEditorController{
     public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection,
             CrudItemEditorControllerExtensions,
@@ -185,7 +189,7 @@ export function addServices(services: controller.ServiceCollection) {
     services.tryAddSharedInstance(CrudItemEditorControllerExtensions, new CrudItemEditorControllerExtensions());
     services.tryAddShared(CrudItemEditorController,
         s => {
-            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), s.getRequiredService(CrudItemEditorControllerOptions))
+            return new FormCrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredService(CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), s.getRequiredService(CrudItemEditorControllerOptions))
         });
 
     //Add Item Editor
@@ -196,7 +200,7 @@ export function addServices(services: controller.ServiceCollection) {
             var options = s.getRequiredServiceId(CrudItemEditorType.Add, CrudItemEditorControllerOptions);
             var customOptions = Object.create(options);
             customOptions.type = CrudItemEditorType.Add;
-            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Add, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
+            return new FormCrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Add, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
         });
 
     //Update item editor
@@ -206,6 +210,6 @@ export function addServices(services: controller.ServiceCollection) {
             var options = s.getRequiredServiceId(CrudItemEditorType.Update, CrudItemEditorControllerOptions);
             var customOptions = Object.create(options);
             customOptions.type = CrudItemEditorType.Update;
-            return new CrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Update, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
+            return new FormCrudItemEditorController(s.getRequiredService(controller.BindingCollection), s.getRequiredServiceId(CrudItemEditorType.Update, CrudItemEditorControllerExtensions), s.getRequiredService(ICrudService), customOptions)
         });
 }
