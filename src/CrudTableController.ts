@@ -6,12 +6,36 @@ import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
 import * as view from 'hr.view';
 
 export class CrudTableControllerExtensions {
-    public getVariant(item: any): string {
+
+    /**
+     * Determine the view variant to use. The external data is passed as well.
+     * @param item
+     * @param external
+     */
+    public getVariant(item: any, external?: any): string {
         return null;
     }
 
-    public getDisplayObject(display: any, original: any): any {
+    /**
+     * Get an object that will be sent to the view for your object. You can apply any additional formatting
+     * here and lookup values from your external data.
+     * @param display The version of the object the crud service has accessed.
+     * @param original The data object that was originally passed in.
+     * @param external The external data you loaded in loadExternalData, will be null if you didnt load anything.
+     */
+    public getDisplayObject(display: any, original: any, external?: any): any {
         return display;
+    }
+
+    /**
+     * Load any external data that is needed for building display objects. This is called when the data for a page
+     * is first loaded. You should store your results and return them from this funciton, this will pass the value
+     * you return to getDisplayObject when getting the final version of your object you want to display.
+     * By default this returns null.
+     * @param pageData
+     */
+    public async loadExternalData(pageData: any): Promise<any> {
+        return Promise.resolve(null);
     }
 }
 
@@ -42,16 +66,17 @@ export class CrudTableController extends ListingDisplayController<any> {
         this.crudService.add();
     }
 
-    public setData(pageData: any) {
+    public async setData(pageData: any): Promise<void> {
+        var external = await this.extensions.loadExternalData(pageData);
         var items = this.crudService.getItems(pageData);
         this.clearData();
         var listingCreator = this.builder.createOnCallback(CrudTableRowController);
         for (var i = 0; i < items.length; ++i) {
             var item = items[i];
-            var itemData = this.extensions.getDisplayObject(this.crudService.getListingDisplayObject(item), item);
+            var itemData = this.extensions.getDisplayObject(this.crudService.getListingDisplayObject(item), item, external);
             this.appendData(itemData, (b, d) => {                
                 listingCreator(b, item);
-            }, v => this.extensions.getVariant(item));
+            }, v => this.extensions.getVariant(item, external));
         }
         this.showMain();
     }
@@ -70,7 +95,7 @@ export class CrudTableController extends ListingDisplayController<any> {
                 }
             }
 
-            this.setData(data);
+            await this.setData(data);
 
             if (this.addToggle && ! await this.crudService.canAdd()) {
                 this.addToggle.off();
