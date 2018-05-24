@@ -102,6 +102,14 @@ export abstract class HypermediaPageInjector {
         return this._usePageQueryForFirstLoad;
     }
 
+    /**
+     * Get a default object to use when adding a new item. By default this returns an
+     * empty object, but you can override it to return what you need.
+     */
+    public async getDefaultAddObject(): Promise<any> {
+        return Promise.resolve({});
+    }
+
     public get uniqueName(): string {
         return this._uniqueName;
     }
@@ -341,7 +349,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
 
     public async add(item?: any) {
         if (item === undefined) {
-            item = {};
+            item = await this.pageInjector.getDefaultAddObject();
         }
         this.fireAddItemEvent(new crudPage.ShowItemEditorEventArgs(item, a => this.finishAdd(a), this.currentPage));
     }
