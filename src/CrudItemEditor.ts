@@ -108,11 +108,22 @@ export class FormCrudItemEditorController implements CrudItemEditorController{
             return;
         }
 
+        var data = this.getFormData();
+        this.trySubmit(() => this.updated(data));
+    }
+
+    /**
+     * This function will run the ui in form submit mode (show load, try to submit, handle error). However
+     * it will use the funciton you pass in as the actual action that is performed. This makes it easy to
+     * have external handlers that use the form ui to do actions other than "save". Exceptions will be handled
+     * by this function and are not rethrown.
+     * @param doSubmission
+     */
+    public async trySubmit(doSubmission: () => Promise<void>): Promise<void>{
         try {
             this.mainErrorToggle.off();
             this.lifecycle.showLoad();
-            var data = this._form.getData() || {}; //Form returns null, but to get errors from the server, need to at least send an empty object
-            await this.updated(data);
+            await doSubmission();
             this.lifecycle.showMain();
             if(this._autoClose){
                 this._dialog.off();
@@ -141,6 +152,10 @@ export class FormCrudItemEditorController implements CrudItemEditorController{
 
     public get form(): controller.IForm<any> {
         return this._form;
+    }
+
+    public getFormData() {
+        return this._form.getData() || {}; //Form returns null, but to get errors from the server, need to at least send an empty object
     }
 
     public get dialog(): controller.OnOffToggle {
