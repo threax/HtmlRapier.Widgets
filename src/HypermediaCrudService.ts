@@ -384,16 +384,20 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
             }
         }
 
-        if (IsHypermediaRefreshableResult(item) && item.canRefresh()) {
-            item = await item.refresh();
-        }
-
-        var dataPromise = this.getEditObject(item);
+        var dataPromise = this.refreshItemData(item);
         var update: crudPage.ItemUpdatedCallback | null = null;
         if (IsHypermediaUpdatableResult(item) && item.canUpdate()) {
             update = a => this.finishEdit(a, item);
         }
         this.fireShowItemEditorEvent(new crudPage.ShowItemEditorEventArgs(dataPromise, update, item, () => this.itemEditorClosed()));
+    }
+
+    private async refreshItemData(item: any): Promise<any> {
+        if (IsHypermediaRefreshableResult(item) && item.canRefresh()) {
+            item = await item.refresh();
+        }
+
+        return await this.getEditObject(item);
     }
 
     public canEdit(item: HypermediaCrudDataResult): boolean {
