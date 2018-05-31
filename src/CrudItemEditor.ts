@@ -34,6 +34,10 @@ export class CrudItemEditorControllerExtensions {
     setup(editor: CrudItemEditorController): Promise<void> {
         return Promise.resolve(undefined);
     }
+
+    formDataSet(data: any): void {
+
+    }
 }
 
 export abstract class CrudItemEditorController {
@@ -153,6 +157,7 @@ export class FormCrudItemEditorController implements CrudItemEditorController{
             this.viewOnlyToggle.mode = this.updated === null;
             this.closed = arg.closed;
             this._form.setData(data);
+            this.extensions.formDataSet(data);
             this.lifecycle.showMain();
         }
         catch (err) {
