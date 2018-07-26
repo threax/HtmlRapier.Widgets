@@ -343,7 +343,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         await this.initialPageLoadPromise.Promise;
         if (IsSearchableCrudCollection(this.currentPage) && this.currentPage.hasListDocs()) {
             var docs = await this.currentPage.getListDocs();
-            return docs.querySchema || docs.requestSchema;
+            return docs.requestSchema;
         }
     }
 
