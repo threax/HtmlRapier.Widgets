@@ -113,6 +113,15 @@ export abstract class HypermediaPageInjector {
     public get uniqueName(): string {
         return this._uniqueName;
     }
+
+    /**
+     * Get a search schema, this can return null to let the table load the search schema automatically
+     * from the listing schema. Otherwise return the desired schema here. Using this can make your search
+     * appear more quickly if the first page of results is slow.
+     */
+    public async getSearchSchema() {
+        return null;
+    }
 }
 
 export abstract class HypermediaChildPageInjector<T extends HypermediaCrudDataResult> extends HypermediaPageInjector {
@@ -339,6 +348,13 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
     }
 
     public async getSearchSchema() {
+        //See if the injector provides a schema
+        var schema = await this.pageInjector.getSearchSchema();
+        if(schema != null){
+            return schema;
+        }
+
+        //If not load the schema for the listing function.
         //This ensures that we don't return an item schema until at least one page is loaded.
         await this.initialPageLoadPromise.Promise;
         if (IsSearchableCrudCollection(this.currentPage) && this.currentPage.hasListDocs()) {
