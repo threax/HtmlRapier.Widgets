@@ -4,17 +4,22 @@ import { ICrudService } from 'hr.widgets.CrudService';
 import * as form from 'hr.form';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 
+export abstract class ICrudSearchOptions {
+    public allowAutoSearch?: boolean;
+}
+
 export class CrudSearch extends ICrudQueryComponent {
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ICrudService, CrudQueryManager];
+        return [controller.BindingCollection, ICrudService, CrudQueryManager, ICrudSearchOptions];
     }
 
     private queryManager: CrudQueryManager;
     private crudService: ICrudService;
     private form: controller.IForm<any>;
     private lifecycle: MainLoadErrorLifecycle;
+    private allowAutoSearch: boolean;
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager) {
+    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager, options: ICrudSearchOptions) {
         super();
 
         this.lifecycle = new MainLoadErrorLifecycle(
@@ -23,6 +28,7 @@ export class CrudSearch extends ICrudQueryComponent {
             bindings.getToggle("error"),
             true);
 
+        this.allowAutoSearch = options.allowAutoSearch;
         this.crudService = crudService;
         this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
         this.queryManager = queryManager;
@@ -47,6 +53,11 @@ export class CrudSearch extends ICrudQueryComponent {
             }
 
             this.form.setSchema(schema);
+            this.form.onChanged.add(a => {
+                if (this.allowAutoSearch) {
+                    this.crudService.getPage(this.queryManager.setupQuery());
+                }
+            });
             this.lifecycle.showMain();
         }
         catch (err) {
@@ -71,7 +82,10 @@ export class CrudSearch extends ICrudQueryComponent {
     }
 
     public setData(pageData: any): void {
+        var allowSearch = this.allowAutoSearch;
+        this.allowAutoSearch = false;
         this.form.setData(this.crudService.getSearchObject(pageData));
+        this.allowAutoSearch = allowSearch;
     }
 
     private async handlePageLoad(promise: Promise<any>) {
@@ -85,5 +99,10 @@ export class CrudSearch extends ICrudQueryComponent {
 }
 
 export function addServices(services: controller.ServiceCollection) {
+    services.tryAddShared(ICrudSearchOptions, s => {
+        return {
+            allowAutoSearch: false
+        }
+    });
     services.tryAddTransient(CrudSearch, CrudSearch);
 }
