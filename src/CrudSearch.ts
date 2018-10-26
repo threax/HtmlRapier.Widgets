@@ -28,6 +28,16 @@ export class CrudSearchExtensions {
     public onAutoSearch(args: form.IFormChangedArgs<any>): boolean {
         return true;
     }
+
+    /**
+     * This is called when data is about to be set on the search form.
+     * You can return true to allow the data to be set or false to cancel
+     * it if needed. The default implementation always returns true.
+     * @param pageData
+     */
+    public onSetData(pageData: any): boolean {
+        return true;
+    }
 }
 
 export class CrudSearch extends ICrudQueryComponent {
@@ -109,17 +119,23 @@ export class CrudSearch extends ICrudQueryComponent {
         return this.crudService.getPage(this.queryManager.setupQuery());
     }
 
-    public clearForm(clearData?: any) {
+    public clearData(clearData?: any) {
         if (clearData === undefined) {
-            clearData = {};
+            clearData = null;
         }
-        this.form.setData(clearData);
+        this.doSetData(clearData);
     }
 
     public setData(pageData: any): void {
+        if (this.extensions.onSetData(pageData)) {
+            this.doSetData(this.crudService.getSearchObject(pageData));
+        }
+    }
+
+    private doSetData(data: any): void {
         var allowSearch = this.allowAutoSearch;
         this.allowAutoSearch = false;
-        this.form.setData(this.crudService.getSearchObject(pageData));
+        this.form.setData(data);
         this.allowAutoSearch = allowSearch;
     }
 
