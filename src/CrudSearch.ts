@@ -10,12 +10,23 @@ export abstract class ICrudSearchOptions {
 }
 
 export class CrudSearchExtensions {
-    constructed(search: CrudSearch, bindings: controller.BindingCollection): void {
+    public constructed(search: CrudSearch, bindings: controller.BindingCollection): void {
 
     }
 
-    setup(search: CrudSearch): Promise<void> {
+    public setup(search: CrudSearch): Promise<void> {
         return Promise.resolve(undefined);
+    }
+
+    /**
+     * This is called when an auto search is going to be performed. Return
+     * true to do the search and false to skip it. Default implementation
+     * always returns true. This will only fire if you enabled allowAutoSearch
+     * in the options.
+     * @param args
+     */
+    public onAutoSearch(args: form.IFormChangedArgs<any>): boolean {
+        return true;
     }
 }
 
@@ -66,7 +77,7 @@ export class CrudSearch extends ICrudQueryComponent {
 
             this.form.setSchema(schema);
             this.form.onChanged.add(a => {
-                if (this.allowAutoSearch) {
+                if (this.allowAutoSearch && this.extensions.onAutoSearch(a)) {
                     this.crudService.getPage(this.queryManager.setupQuery());
                 }
             });
