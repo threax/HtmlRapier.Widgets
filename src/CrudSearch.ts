@@ -3,14 +3,25 @@ import * as controller from 'hr.controller';
 import { ICrudService } from 'hr.widgets.CrudService';
 import * as form from 'hr.form';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import { serialize } from 'htmlrapier/src/formhelper';
 
 export abstract class ICrudSearchOptions {
     public allowAutoSearch?: boolean;
 }
 
+export class CrudSearchExtensions {
+    constructed(search: CrudSearch, bindings: controller.BindingCollection): void {
+
+    }
+
+    setup(search: CrudSearch): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+}
+
 export class CrudSearch extends ICrudQueryComponent {
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ICrudService, CrudQueryManager, ICrudSearchOptions];
+        return [controller.BindingCollection, ICrudService, CrudQueryManager, ICrudSearchOptions, CrudSearchExtensions];
     }
 
     private queryManager: CrudQueryManager;
@@ -19,7 +30,7 @@ export class CrudSearch extends ICrudQueryComponent {
     private lifecycle: MainLoadErrorLifecycle;
     private allowAutoSearch: boolean;
 
-    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager, options: ICrudSearchOptions) {
+    constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager, options: ICrudSearchOptions, private extensions: CrudSearchExtensions) {
         super();
 
         this.lifecycle = new MainLoadErrorLifecycle(
@@ -34,6 +45,7 @@ export class CrudSearch extends ICrudQueryComponent {
         this.queryManager = queryManager;
         this.queryManager.addComponent(this);
         this.form = new form.NeedsSchemaForm(bindings.getForm<any>("input"));
+        this.extensions.constructed(this, bindings);
         this.setup(bindings, crudService);
     }
 
@@ -58,6 +70,7 @@ export class CrudSearch extends ICrudQueryComponent {
                     this.crudService.getPage(this.queryManager.setupQuery());
                 }
             });
+            await this.extensions.setup(this);
             this.lifecycle.showMain();
         }
         catch (err) {
@@ -78,7 +91,18 @@ export class CrudSearch extends ICrudQueryComponent {
 
     public submit(evt: Event) {
         evt.preventDefault();
-        this.crudService.getPage(this.queryManager.setupQuery());
+        this.triggerSearch();
+    }
+
+    public triggerSearch(): Promise<any> {
+        return this.crudService.getPage(this.queryManager.setupQuery());
+    }
+
+    public clearForm(clearData?: any) {
+        if (clearData === undefined) {
+            clearData = {};
+        }
+        this.form.setData(clearData);
     }
 
     public setData(pageData: any): void {
@@ -104,5 +128,6 @@ export function addServices(services: controller.ServiceCollection) {
             allowAutoSearch: false
         }
     });
+    services.tryAddTransient(CrudSearchExtensions, s => new CrudSearchExtensions());
     services.tryAddTransient(CrudSearch, CrudSearch);
 }
