@@ -26,7 +26,6 @@ export class CrudPageNumbers extends ICrudQueryComponent {
     private queryManager: CrudQueryManager;
     private pageNumbers: pageWidget.PageNumberWidget;
     private crudService: ICrudService;
-    private currentPage: number = 0;
     private itemCountsModel: controller.Model<PageNumberItemCount>;
     private totalPerPageModel: controller.Model<ItemsPerPage>;
 
@@ -51,12 +50,12 @@ export class CrudPageNumbers extends ICrudQueryComponent {
     }
 
     private loadPage(page: number) {
-        this.currentPage = page;
-        this.crudService.getPage(this.queryManager.setupQuery());
+        var query: PageNumberQuery = this.queryManager.setupQuery();
+        query.offset = page;
+        this.crudService.getPage(query);
     }
 
     public setupQuery(query: PageNumberQuery): void {
-        query.offset = this.currentPage;
         var perPage = this.totalPerPageModel.getData();
         if (perPage.itemsPerPage === undefined) {
             perPage.itemsPerPage = 10;
@@ -76,7 +75,6 @@ export class CrudPageNumbers extends ICrudQueryComponent {
         this.totalPerPageModel.setData({
             itemsPerPage: pageState.limit
         });
-        this.currentPage = pageState.offset;
     }
 
     private async handlePageLoad(promise: Promise<any>) {
