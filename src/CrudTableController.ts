@@ -8,6 +8,14 @@ import * as view from 'hr.view';
 export class CrudTableControllerExtensions {
 
     /**
+     * If you need access to the binding collection for the table, get it here.
+     * @param bindings The binding collection for the table.
+     */
+    public setupBindings(bindings: controller.BindingCollection): void {
+        
+    }
+
+    /**
      * Determine the view variant to use. The external data is passed as well.
      * @param item
      * @param external
@@ -52,6 +60,7 @@ export class CrudTableController extends ListingDisplayController<any> {
     constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder, private extensions: CrudTableControllerExtensions) {
         super(bindings, options);
 
+        this.extensions.setupBindings(bindings);
         this.queryManager = queryManager;
         this.crudService = crudService;
         this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
