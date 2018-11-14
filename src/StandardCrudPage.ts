@@ -12,6 +12,7 @@ export class Settings {
     mainTableName: string = "mainTable";
     entryEditorName: string = "entryEditor";
     addItemEditorName: string | null = "addEntryEditor";
+    mainTableSortName: string = "mainTableSort";
 }
 
 /**
@@ -32,6 +33,7 @@ export function createControllers(builder: controller.InjectedControllerBuilder,
     builder.create(settings.searchName, hyperCrudPage.CrudSearch);
     builder.create(settings.pageNumbersName, hyperCrudPage.CrudPageNumbers);
     builder.create(settings.mainTableName, hyperCrudPage.CrudTableController);
+    builder.create(settings.mainTableSortName, hyperCrudPage.CrudSort);
 
     //Its possible that the add item editor name is null, which means we shouldn't try to create it.
     if(settings.addItemEditorName === null) {
