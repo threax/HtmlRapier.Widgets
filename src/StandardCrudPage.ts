@@ -32,8 +32,8 @@ export function addServices(builder: controller.InjectedControllerBuilder, injec
 export function createControllers(builder: controller.InjectedControllerBuilder, settings: Settings): void {
     builder.create(settings.searchName, hyperCrudPage.CrudSearch);
     builder.create(settings.pageNumbersName, hyperCrudPage.CrudPageNumbers);
-    builder.create(settings.mainTableName, hyperCrudPage.CrudTableController);
     builder.create(settings.mainTableSortName, hyperCrudPage.CrudSort);
+    builder.create(settings.mainTableName, hyperCrudPage.CrudTableController);
 
     //Its possible that the add item editor name is null, which means we shouldn't try to create it.
     if(settings.addItemEditorName === null) {

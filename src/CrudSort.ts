@@ -8,6 +8,7 @@ export class CrudSort extends ICrudQueryComponent {
     }
 
     private orderBy: string;
+    private orderAsc: boolean = true;
 
     constructor(bindings: controller.BindingCollection, private crudService: ICrudService, private queryManager: CrudQueryManager) {
         super();
@@ -17,10 +18,32 @@ export class CrudSort extends ICrudQueryComponent {
 
     public setupQuery(query: any): void {
         query["orderBy"] = this.orderBy;
+        if(this.orderAsc){
+            query["order"] = "Ascending";
+        }
+        else{
+            query["order"] = "Descending";
+        }
     }
 
     public setData(pageData: any): void {
-        this.orderBy = this.crudService.getSearchObject(pageData).sortColumn;
+        var strongData = this.crudService.getSearchObject(pageData);
+        this.orderBy = strongData.orderBy;
+        this.orderAsc = strongData.order !== "Descending";
+    }
+
+    public sort(evt: Event): void {
+        evt.preventDefault();
+        var newSortColumn = evt.srcElement.getAttribute("data-hr-sort-name");
+        if(this.orderBy === newSortColumn){
+            this.orderAsc = !this.orderAsc;
+        }
+        else{
+            this.orderAsc = true;
+        }
+        this.orderBy = newSortColumn;
+
+        this.crudService.getPage(this.queryManager.setupQuery());
     }
 
     private async handlePageLoad(promise: Promise<any>) {
@@ -30,12 +53,6 @@ export class CrudSort extends ICrudQueryComponent {
         catch (err) {
             console.log("Error loading crud table data for search. Message: " + err.message);
         }
-    }
-
-    public sort(evt: Event): void {
-        evt.preventDefault();
-        this.orderBy = evt.srcElement.getAttribute("data-column-name");
-        this.crudService.getPage(this.queryManager.setupQuery());
     }
 }
 
