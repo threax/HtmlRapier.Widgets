@@ -15,6 +15,8 @@ import * as crudTable from 'hr.widgets.CrudTableController';
 export { CrudTableController, CrudTableControllerExtensions } from 'hr.widgets.CrudTableController';
 import * as crudSort from 'hr.widgets.CrudSort';
 export { CrudSort } from 'hr.widgets.CrudSort';
+import * as crudPageView from 'hr.widgets.CrudPageView';
+export { CrudPageView } from 'hr.widgets.CrudPageView';
 
 /**
  * Setup the services to use a crud page in the given service collection. This will
@@ -33,4 +35,5 @@ export function addServices(services: controller.ServiceCollection) {
     crudSearch.addServices(services);
     crudQuery.addServices(services);
     crudSort.addServices(services);
+    crudPageView.addServices(services);
 }

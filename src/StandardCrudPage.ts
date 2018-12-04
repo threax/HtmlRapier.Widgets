@@ -13,6 +13,7 @@ export class Settings {
     entryEditorName: string = "entryEditor";
     addItemEditorName: string | null = "addEntryEditor";
     mainTableSortName: string = "mainTableSort";
+    mainTablePageViewName: string = "mainTablePageView";
 }
 
 /**
@@ -33,6 +34,7 @@ export function createControllers(builder: controller.InjectedControllerBuilder,
     builder.create(settings.searchName, hyperCrudPage.CrudSearch);
     builder.create(settings.pageNumbersName, hyperCrudPage.CrudPageNumbers);
     builder.create(settings.mainTableSortName, hyperCrudPage.CrudSort);
+    builder.create(settings.mainTablePageViewName, hyperCrudPage.CrudPageView);
     builder.create(settings.mainTableName, hyperCrudPage.CrudTableController);
 
     //Its possible that the add item editor name is null, which means we shouldn't try to create it.
