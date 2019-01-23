@@ -150,11 +150,12 @@ export class CrudTableController {
 
     public showMain() {
         this.lifecycle.showMain();
-        this.scrollback.scrollToPosition();
+        this.scrollback.onMainShown();
     }
 
     public showLoad() {
         this.lifecycle.showLoad();
+        this.scrollback.onLoading();
     }
 
     public showError(error: Error) {

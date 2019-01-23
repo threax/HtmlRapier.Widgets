@@ -21,7 +21,11 @@ export function cumulativeOffset(element) {
 };
 
 export class ScrollbackController {
-    scrollToPosition(): void {
+    onLoading(): void {
+
+    }
+
+    onMainShown(): void {
 
     }
 }
@@ -29,8 +33,9 @@ export class ScrollbackController {
 export class WindowTopScrollbackController extends ScrollbackController {
     private once: boolean = false; //Only scrollback after the first call to this controller
 
-    scrollToPosition(): void {
+    onLoading(): void {
         if (this.once) {
+            console.log("Scrolling to origin");
             window.scrollTo(0, 0);
         }
         else {
@@ -40,21 +45,30 @@ export class WindowTopScrollbackController extends ScrollbackController {
 }
 
 export class IdScrollbackController extends ScrollbackController {
-    private once: boolean = false; //Only scrollback after the first call to this controller
+    private onceLoading: boolean = false; //Only scrollback after the first call to this controller
+    private onceMainShown: boolean = false; //Only scrollback after the first call to this controller
 
     constructor(private id: string) {
         super();
     }
 
-    scrollToPosition(): void {
-        if (this.once) {
+    onLoading(): void {
+        if (this.onceLoading) {
             var elem = window.document.getElementById(this.id);
-            var offset = cumulativeOffset(elem);
-            console.log(offset.top);
-            window.scrollTo(0, offset.top);
+            elem.scrollIntoView(true);
         }
         else {
-            this.once = true;
+            this.onceLoading = true;
+        }
+    }
+
+    onMainShown(): void {
+        if (this.onceMainShown) {
+            var elem = window.document.getElementById(this.id);
+            elem.scrollIntoView(true);
+        }
+        else {
+            this.onceMainShown = true;
         }
     }
 }
