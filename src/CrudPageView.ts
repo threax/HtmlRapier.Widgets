@@ -1,4 +1,3 @@
-import { ListingDisplayController, ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
 import * as controller from 'hr.controller';
 import { ICrudService } from 'hr.widgets.CrudService';
 import { CrudQueryManager } from 'hr.widgets.CrudQuery';

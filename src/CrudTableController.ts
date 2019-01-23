@@ -4,6 +4,7 @@ import { ICrudService } from 'hr.widgets.CrudService';
 import { CrudQueryManager } from 'hr.widgets.CrudQuery';
 import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
 import * as view from 'hr.view';
+import { ScrollbackController } from 'hr.widgets.ScrollbackController';
 
 export class CrudTableControllerExtensions {
 
@@ -49,7 +50,7 @@ export class CrudTableControllerExtensions {
 
 export class CrudTableController extends ListingDisplayController<any> {
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder, CrudTableControllerExtensions];
+        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder, CrudTableControllerExtensions, ScrollbackController];
     }
 
     private crudService: ICrudService;
@@ -57,8 +58,8 @@ export class CrudTableController extends ListingDisplayController<any> {
     private addToggle: controller.OnOffToggle;
     private lookupDisplaySchema = true;
 
-    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder, private extensions: CrudTableControllerExtensions) {
-        super(bindings, options);
+    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder, private extensions: CrudTableControllerExtensions, scrollback: ScrollbackController) {
+        super(bindings, options, scrollback);
 
         this.extensions.setupBindings(bindings);
         this.queryManager = queryManager;

@@ -2,6 +2,7 @@
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as view from 'hr.view';
 import * as components from 'hr.components';
+import { ScrollbackController } from 'hr.widgets.ScrollbackController';
 
 export class ListingDisplayOptions {
     listingModelName: string = "listing";
@@ -17,9 +18,11 @@ export class ListingDisplayOptions {
 export class ListingDisplayController<T> {
     private listingModel: controller.IView<any>;
     private lifecycle: MainLoadErrorLifecycle;
+    private scrollback: ScrollbackController;
 
-    constructor(bindings: controller.BindingCollection, settings: ListingDisplayOptions) {
+    constructor(bindings: controller.BindingCollection, settings: ListingDisplayOptions, scrollback: ScrollbackController) {
         this.listingModel = bindings.getView<T>(settings.listingModelName);
+        this.scrollback = scrollback;
         this.lifecycle = new MainLoadErrorLifecycle(
             bindings.getToggle(settings.mainToggleName),
             bindings.getToggle(settings.loadToggleName),
@@ -40,6 +43,7 @@ export class ListingDisplayController<T> {
     }
 
     public showMain() {
+        this.scrollback.scrollToPosition();
         this.lifecycle.showMain();
     }
 

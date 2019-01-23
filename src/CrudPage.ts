@@ -1,5 +1,4 @@
 import * as controller from 'hr.controller';
-export { ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
 export { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs, CrudDataModifiedEventArgs } from 'hr.widgets.CrudService';
 import * as crudRow from 'hr.widgets.CrudTableRow';
 export { CrudTableRowController, CrudTableRowControllerExtensions } from 'hr.widgets.CrudTableRow';
@@ -17,6 +16,7 @@ import * as crudSort from 'hr.widgets.CrudSort';
 export { CrudSort } from 'hr.widgets.CrudSort';
 import * as crudPageView from 'hr.widgets.CrudPageView';
 export { CrudPageView } from 'hr.widgets.CrudPageView';
+import * as scrollback from 'hr.widgets.ScrollbackController';
 
 /**
  * Setup the services to use a crud page in the given service collection. This will
@@ -28,6 +28,7 @@ export { CrudPageView } from 'hr.widgets.CrudPageView';
  * @param {controller.ServiceCollection} services The service collection to add services to.
  */
 export function addServices(services: controller.ServiceCollection) {
+    scrollback.addServices(services);
     crudTable.addServices(services);
     crudRow.addServices(services);
     crudItemEditor.addServices(services);
