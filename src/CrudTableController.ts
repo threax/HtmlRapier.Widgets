@@ -1,10 +1,19 @@
-import { ListingDisplayController, ListingDisplayOptions } from 'hr.widgets.ListingDisplayController';
 import * as controller from 'hr.controller';
 import { ICrudService } from 'hr.widgets.CrudService';
 import { CrudQueryManager } from 'hr.widgets.CrudQuery';
 import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
 import * as view from 'hr.view';
 import { ScrollbackController } from 'hr.widgets.ScrollbackController';
+import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import * as components from 'hr.components';
+
+export class ListingDisplayOptions {
+    listingModelName: string = "listing";
+    mainToggleName: string = "main";
+    errorToggleName: string = "error";
+    loadToggleName: string = "load";
+    setLoadingOnStart: boolean = true;
+}
 
 export class CrudTableControllerExtensions {
 
@@ -48,7 +57,7 @@ export class CrudTableControllerExtensions {
     }
 }
 
-export class CrudTableController extends ListingDisplayController<any> {
+export class CrudTableController {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder, CrudTableControllerExtensions, ScrollbackController];
     }
@@ -57,9 +66,18 @@ export class CrudTableController extends ListingDisplayController<any> {
     private queryManager: CrudQueryManager;
     private addToggle: controller.OnOffToggle;
     private lookupDisplaySchema = true;
+    private listingModel: controller.IView<any>;
+    private lifecycle: MainLoadErrorLifecycle;
+    private scrollback: ScrollbackController;
 
     constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder, private extensions: CrudTableControllerExtensions, scrollback: ScrollbackController) {
-        super(bindings, options, scrollback);
+        this.listingModel = bindings.getView<any>(options.listingModelName);
+        this.scrollback = scrollback;
+        this.lifecycle = new MainLoadErrorLifecycle(
+            bindings.getToggle(options.mainToggleName),
+            bindings.getToggle(options.loadToggleName),
+            bindings.getToggle(options.errorToggleName),
+            options.setLoadingOnStart);
 
         this.extensions.setupBindings(bindings);
         this.queryManager = queryManager;
@@ -116,6 +134,31 @@ export class CrudTableController extends ListingDisplayController<any> {
             console.log("Error loading crud table data. Message: " + err.message);
             this.showError(err);
         }
+    }
+
+    public clearData() {
+        this.listingModel.clear();
+    }
+
+    public setFormatter(formatter: view.IViewDataFormatter<any>): void {
+        this.listingModel.setFormatter(formatter);
+    }
+
+    public appendData(data: any | any[], createdCallback?: components.CreatedCallback<any>, variantFinderCallback?: components.VariantFinderCallback<any>) {
+        this.listingModel.appendData(data, createdCallback, variantFinderCallback);
+    }
+
+    public showMain() {
+        this.scrollback.scrollToPosition();
+        this.lifecycle.showMain();
+    }
+
+    public showLoad() {
+        this.lifecycle.showLoad();
+    }
+
+    public showError(error: Error) {
+        this.lifecycle.showError(error);
     }
 }
 
