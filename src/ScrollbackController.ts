@@ -4,22 +4,6 @@ import { ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEd
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as error from 'hr.error';
 
-/// Taken from user eyelidlessness at
-/// https://stackoverflow.com/questions/1480133/how-can-i-get-an-objects-absolute-position-on-the-page-in-javascript
-export function cumulativeOffset(element) {
-    var top = 0, left = 0;
-    do {
-        top += element.offsetTop || 0;
-        left += element.offsetLeft || 0;
-        element = element.offsetParent;
-    } while (element);
-
-    return {
-        top: top,
-        left: left
-    };
-};
-
 export class ScrollbackController {
     onLoading(): void {
 
@@ -35,7 +19,6 @@ export class WindowTopScrollbackController extends ScrollbackController {
 
     onLoading(): void {
         if (this.once) {
-            console.log("Scrolling to origin");
             window.scrollTo(0, 0);
         }
         else {
@@ -44,18 +27,23 @@ export class WindowTopScrollbackController extends ScrollbackController {
     }
 }
 
-export class IdScrollbackController extends ScrollbackController {
+export class ElementScrollbackController extends ScrollbackController {
+    public static get InjectorArgs(): controller.InjectableArgs {
+        return [controller.BindingCollection];
+    }
+
     private onceLoading: boolean = false; //Only scrollback after the first call to this controller
     private onceMainShown: boolean = false; //Only scrollback after the first call to this controller
+    private element: HTMLElement = null;
 
-    constructor(private id: string) {
+    constructor(bindings: controller.BindingCollection) {
         super();
+        this.element = bindings.getHandle("scrollback");
     }
 
     onLoading(): void {
         if (this.onceLoading) {
-            var elem = window.document.getElementById(this.id);
-            elem.scrollIntoView(true);
+            this.scroll();
         }
         else {
             this.onceLoading = true;
@@ -64,15 +52,23 @@ export class IdScrollbackController extends ScrollbackController {
 
     onMainShown(): void {
         if (this.onceMainShown) {
-            var elem = window.document.getElementById(this.id);
-            elem.scrollIntoView(true);
+            this.scroll();
         }
         else {
             this.onceMainShown = true;
         }
     }
+
+    private scroll() {
+        if (this.element === null) {
+            window.scrollTo(0, 0);
+        }
+        else {
+            this.element.scrollIntoView(true);
+        }
+    }
 }
 
 export function addServices(services: controller.ServiceCollection) {
-    services.tryAddShared(ScrollbackController, s => new WindowTopScrollbackController());
+    services.tryAddShared(ScrollbackController, ElementScrollbackController);
 }

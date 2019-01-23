@@ -17,7 +17,7 @@ export { CrudSort } from 'hr.widgets.CrudSort';
 import * as crudPageView from 'hr.widgets.CrudPageView';
 export { CrudPageView } from 'hr.widgets.CrudPageView';
 import * as scrollback from 'hr.widgets.ScrollbackController';
-export { ScrollbackController, IdScrollbackController, WindowTopScrollbackController } from 'hr.widgets.ScrollbackController';
+export { ScrollbackController } from 'hr.widgets.ScrollbackController';
 
 /**
  * Setup the services to use a crud page in the given service collection. This will
