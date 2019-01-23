@@ -1,5 +1,6 @@
 import * as controller from 'hr.controller';
 import * as hyperCrudPage from 'hr.widgets.HypermediaCrudService';
+import * as scrollback from 'hr.widgets.ScrollbackController';
 
 export type HypermediaPageInjectorConstructor = Function & {
     InjectorArgs: controller.InjectableArgs;
@@ -32,11 +33,7 @@ export function addServices(builder: controller.InjectedControllerBuilder, injec
  * Create the controllers for the crud page.
  */
 export function createControllers(builder: controller.InjectedControllerBuilder, settings: Settings): void {
-    var scrollback = builder.create(settings.scrollbackName, hyperCrudPage.ScrollbackController);
-    if (scrollback.length === 0) {
-        builder.createUnbound(hyperCrudPage.ScrollbackController);
-    }
-
+    scrollback.createControllers(builder, settings.scrollbackName);
     builder.create(settings.searchName, hyperCrudPage.CrudSearch);
     builder.create(settings.pageNumbersName, hyperCrudPage.CrudPageNumbers);
     builder.create(settings.mainTableSortName, hyperCrudPage.CrudSort);

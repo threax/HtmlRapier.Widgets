@@ -3,7 +3,6 @@ import { ICrudService } from 'hr.widgets.CrudService';
 import { CrudQueryManager } from 'hr.widgets.CrudQuery';
 import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
 import * as view from 'hr.view';
-import { ScrollbackController } from 'hr.widgets.ScrollbackController';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import * as components from 'hr.components';
 
@@ -59,7 +58,7 @@ export class CrudTableControllerExtensions {
 
 export class CrudTableController {
     public static get InjectorArgs(): controller.InjectableArgs {
-        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder, CrudTableControllerExtensions, ScrollbackController];
+        return [controller.BindingCollection, ListingDisplayOptions, ICrudService, CrudQueryManager, controller.InjectedControllerBuilder, CrudTableControllerExtensions];
     }
 
     private crudService: ICrudService;
@@ -68,11 +67,9 @@ export class CrudTableController {
     private lookupDisplaySchema = true;
     private listingModel: controller.IView<any>;
     private lifecycle: MainLoadErrorLifecycle;
-    private scrollback: ScrollbackController;
 
-    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder, private extensions: CrudTableControllerExtensions, scrollback: ScrollbackController) {
+    constructor(bindings: controller.BindingCollection, options: ListingDisplayOptions, crudService: ICrudService, queryManager: CrudQueryManager, private builder: controller.InjectedControllerBuilder, private extensions: CrudTableControllerExtensions) {
         this.listingModel = bindings.getView<any>(options.listingModelName);
-        this.scrollback = scrollback;
         this.lifecycle = new MainLoadErrorLifecycle(
             bindings.getToggle(options.mainToggleName),
             bindings.getToggle(options.loadToggleName),
@@ -150,12 +147,10 @@ export class CrudTableController {
 
     public showMain() {
         this.lifecycle.showMain();
-        this.scrollback.onMainShown();
     }
 
     public showLoad() {
         this.lifecycle.showLoad();
-        this.scrollback.onLoading();
     }
 
     public showError(error: Error) {
