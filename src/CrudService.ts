@@ -53,12 +53,17 @@ export class CrudDataModifiedEventArgs {
 
 }
 
+export class MainUiShownEventArgs {
+
+}
+
 export abstract class ICrudService {
     private showItemEditorDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
     private showAddItemDispatcher = new events.ActionEventDispatcher<ShowItemEditorEventArgs>();
     private closeItemEditorDispatcher = new events.ActionEventDispatcher<void>();
     private dataLoadingDispatcher = new events.ActionEventDispatcher<DataLoadingEventArgs>();
     private crudDataModifiedDispatcher = new events.ActionEventDispatcher<CrudDataModifiedEventArgs>();
+    private mainUiShownDispatcher = new events.ActionEventDispatcher<MainUiShownEventArgs>();
 
     /**
      * This function will return the schema for adding an item. The default implementation will just return
@@ -256,5 +261,23 @@ export abstract class ICrudService {
      */
     protected fireCrudDataModifiedEvent(args: CrudDataModifiedEventArgs) {
         this.crudDataModifiedDispatcher.fire(args);
+    }
+
+    /**
+     * This event is fired when the service is loading data for the main display.
+     */
+    public get mainUiShownEvent() {
+        return this.mainUiShownDispatcher.modifier;
+    }
+
+    /**
+     * Call this function to alert the crud page that main display data is loading.
+     * Since it is hard to know inside the service if the main ui is visible or not
+     * this function is public so you can call it from the ui controller itself. Do
+     * not call this unless you are the class responsible for showing/hiding the main ui.
+     * @param args The args
+     */
+    public fireMainUiShownEvent(args: MainUiShownEventArgs) {
+        this.mainUiShownDispatcher.fire(args);
     }
 }

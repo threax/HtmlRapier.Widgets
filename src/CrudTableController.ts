@@ -147,6 +147,7 @@ export class CrudTableController {
 
     public showMain() {
         this.lifecycle.showMain();
+        this.crudService.fireMainUiShownEvent({});
     }
 
     public showLoad() {

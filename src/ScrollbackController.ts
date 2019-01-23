@@ -11,13 +11,8 @@ export class ScrollbackController {
     private onceMainShown: boolean = false; //Only scrollback after the first call to this controller
 
     constructor(private crudService: ICrudService) {
-        this.crudService.dataLoadingEvent.add(a => this.handlePageLoad(a.data));
-    }
-
-    private async handlePageLoad(promise: Promise<any>): Promise<void> {
-        this.onLoading();
-        await promise;
-        this.onMainShown();
+        this.crudService.dataLoadingEvent.add(a => this.onLoading());
+        this.crudService.mainUiShownEvent.add(a => this.onMainShown());
     }
 
     private onLoading(): void {
