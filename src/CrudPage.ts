@@ -11,7 +11,7 @@ export { CrudItemEditorController, CrudItemEditorControllerExtensions, CrudItemE
 import * as crudPageNumbers from 'hr.widgets.CrudPageNumbers';
 export { CrudPageNumbers } from 'hr.widgets.CrudPageNumbers';
 import * as crudTable from 'hr.widgets.CrudTableController';
-export { CrudTableController, CrudTableControllerExtensions } from 'hr.widgets.CrudTableController';
+export { CrudTableController, CrudTableControllerExtensions, ListingDisplayOptions } from 'hr.widgets.CrudTableController';
 import * as crudSort from 'hr.widgets.CrudSort';
 export { CrudSort } from 'hr.widgets.CrudSort';
 import * as crudPageView from 'hr.widgets.CrudPageView';
