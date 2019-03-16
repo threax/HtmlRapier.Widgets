@@ -18,6 +18,10 @@ interface ItemsPerPage {
     itemsPerPage: number;
 }
 
+interface HtmlConfig {
+    startitemsperpage?: number;
+}
+
 export class CrudPageNumbers extends ICrudQueryComponent {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [controller.BindingCollection, ICrudService, CrudQueryManager];
@@ -41,11 +45,12 @@ export class CrudPageNumbers extends ICrudQueryComponent {
         this.pageNumbers.loadPreviousEvent.add(arg => this.crudService.previousPage());
         this.pageNumbers.loadNextEvent.add(arg => this.crudService.nextPage());
         this.pageNumbers.loadLastEvent.add(arg => this.crudService.lastPage());
+        var config: HtmlConfig = bindings.getConfig();
 
         this.itemCountsModel = bindings.getModel<PageNumberItemCount>("totals");
         this.totalPerPageModel = bindings.getModel<ItemsPerPage>("itemsPerPage");
         this.totalPerPageModel.setData({
-            itemsPerPage: 10
+            itemsPerPage: config.startitemsperpage ? config.startitemsperpage : 10
         });
     }
 
