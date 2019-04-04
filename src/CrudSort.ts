@@ -47,7 +47,7 @@ export class CrudSort extends ICrudQueryComponent {
 
     public sort(evt: Event): void {
         evt.preventDefault();
-        var newSortColumn = evt.srcElement.getAttribute("data-hr-sort-name");
+        var newSortColumn = (<HTMLElement>evt.target).getAttribute("data-hr-sort-name");
         if(this.orderBy === newSortColumn){
             this.orderAsc = !this.orderAsc;
         }
