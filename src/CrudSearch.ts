@@ -115,6 +115,11 @@ export class CrudSearch extends ICrudQueryComponent {
         this.triggerSearch();
     }
 
+    public reset(evt: Event) {
+        evt.preventDefault();
+        this.clearData({});
+    }
+
     public triggerSearch(): Promise<any> {
         return this.crudService.getPage(this.queryManager.setupQuery());
     }
