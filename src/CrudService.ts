@@ -38,14 +38,28 @@ export class ShowItemEditorEventArgs {
 }
 
 export class DataLoadingEventArgs {
-    private _dataPromise: Promise<any>;
-
-    constructor(dataPromise: Promise<any>) {
-        this._dataPromise = dataPromise;
+    constructor(private _dataPromise: Promise<any>, private _query?: any) {
+        if (this._query === undefined) {
+            this._query = null;
+        }
     }
 
+    /**
+     * Get the promise that will resolve when the data is loaded.
+     */
     public get data(): Promise<any> {
         return this._dataPromise;
+    }
+
+    /**
+     * Get the query used to load the data. This can be null if no 
+     * query was provided when the loading event was triggered. Also
+     * note that this query could have its properties in different formats
+     * depending on how it was created. For example properties could be
+     * in different cases or other mutations.
+     */
+    public get query(): any | null {
+        return this._query;
     }
 }
 

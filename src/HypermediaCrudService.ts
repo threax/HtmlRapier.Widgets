@@ -491,17 +491,17 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
                 });
         }
 
-        return this.handlePageLoad(loadingPromise);
+        return this.handlePageLoad(loadingPromise, query);
     }
 
     //This function handles only returning the last set of requested data.
-    private async handlePageLoad(loadingPromise: Promise<HypermediaCrudCollection>): Promise<HypermediaCrudCollection> {
+    private async handlePageLoad(loadingPromise: Promise<HypermediaCrudCollection>, query?: any): Promise<HypermediaCrudCollection> {
         this.currentPageLoadPromise = loadingPromise;
 
         //If the current external promise is null, we weren't loading anything, so fire off that event.
         if (this.externalPageLoadPromise === null) {
             this.externalPageLoadPromise = new ExternalPromise();
-            this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(this.externalPageLoadPromise.Promise));
+            this.fireDataLoadingEvent(new crudPage.DataLoadingEventArgs(this.externalPageLoadPromise.Promise, query));
         }
 
         //Wait for the results from this function
@@ -665,7 +665,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         }
         else {
             var loadingPromise = this.getPageAsync(args.query, false);
-            this.handlePageLoad(loadingPromise);
+            this.handlePageLoad(loadingPromise, args.query);
             this.allowCloseHistory = false;
             this.fireCloseItemEditorEvent();
             this.allowCloseHistory = true;
