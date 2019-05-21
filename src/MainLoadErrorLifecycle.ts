@@ -19,6 +19,10 @@ export class MainLoadErrorLifecycle {
         }
     }
 
+    public addOther(toggle: toggles.Toggle){
+        this.toggleGroup.add(toggle);
+    }
+
     public showMain() {
         this.toggleGroup.activate(this.mainToggle);
     }
