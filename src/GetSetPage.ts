@@ -32,12 +32,16 @@ export abstract class IGetSetService {
 
     public abstract getData(): Promise<{} | undefined>;
 
-    public abstract setData(data: {}): Promise<void>;
+    public abstract setData(data: {}): Promise<HypermediaInputResult | void>;
 }
 
 export class GetSetControllerExtensions {
     public static get InjectorArgs(): controller.InjectableArgs {
         return [];
+    }
+
+    public constructed(bindings: controller.BindingCollection, source: GetSetController): void {
+
     }
 
     /**
@@ -47,6 +51,16 @@ export class GetSetControllerExtensions {
      * @param source
      */
     public async inputCompleted(data: any, source: GetSetController): Promise<void> {
+
+    }
+
+    /**
+     * This function is called when the data set on the server and the InputItemEditorController is about to display
+     * the complete page. This will send the HypermediaInputResult as the data argument.
+     * @param data
+     * @param source
+     */
+    public async setCompleted(data: HypermediaInputResult, source: GetSetController): Promise<void> {
 
     }
 }
@@ -87,7 +101,7 @@ export class GetSetController {
             true);
 
         bindings.setListener(this.extensions);
-
+        this.extensions.constructed(bindings, this);
         this.setup();
     }
 
@@ -114,7 +128,10 @@ export class GetSetController {
         this.completeToggle.off();
         try {
             var data = this.form.getData() || {}; //Form returns null, but to get errors must send something
-            await this.inputService.setData(data);
+            var setResult = await this.inputService.setData(data);
+            if(setResult) {
+                await this.extensions.setCompleted(setResult, this);
+            }
             await this.extensions.inputCompleted(data, this);
             if (this.keepMainFormVisible) {
                 data = await this.inputService.getData()
@@ -181,8 +198,9 @@ export class HypermediaGetSetService extends IGetSetService {
         return this.current.data;
     }
 
-    public async setData(data: {}): Promise<void> {
+    public async setData(data: {}): Promise<HypermediaInputResult | void> {
         this.current = await this.current.set(data);
+        return this.current;
     }
 }
 
