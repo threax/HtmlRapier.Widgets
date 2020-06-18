@@ -4,9 +4,15 @@ import { ICrudService } from 'hr.widgets.CrudService';
 import * as form from 'hr.form';
 import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
 import { serialize } from 'htmlrapier/src/formhelper';
+import * as error from 'hr.error';
 
 export abstract class ICrudSearchOptions {
     public allowAutoSearch?: boolean;
+    public loadToggleName?: string;
+    public mainToggleName?: string;
+    public errorToggleName?: string;
+    public queryErrorViewName?: string;
+    public queryErrorToggleName?: string;
 }
 
 export class CrudSearchExtensions {
@@ -50,14 +56,16 @@ export class CrudSearch extends ICrudQueryComponent {
     private form: controller.IForm<any>;
     private lifecycle: MainLoadErrorLifecycle;
     private allowAutoSearch: boolean;
+    private queryErrorView: controller.IView<string>;
+    private queryErrorToggle: controller.OnOffToggle;
 
     constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager, options: ICrudSearchOptions, private extensions: CrudSearchExtensions) {
         super();
 
         this.lifecycle = new MainLoadErrorLifecycle(
-            bindings.getToggle("main"),
-            bindings.getToggle("load"),
-            bindings.getToggle("error"),
+            bindings.getToggle(options.mainToggleName || "main"),
+            bindings.getToggle(options.loadToggleName || "load"),
+            bindings.getToggle(options.errorToggleName || "error"),
             true);
 
         this.allowAutoSearch = options.allowAutoSearch;
@@ -66,6 +74,8 @@ export class CrudSearch extends ICrudQueryComponent {
         this.queryManager = queryManager;
         this.queryManager.addComponent(this);
         this.form = new form.NeedsSchemaForm(bindings.getForm<any>("input"));
+        this.queryErrorView = bindings.getView(options.queryErrorViewName || "queryError");
+        this.queryErrorToggle = bindings.getToggle(options.queryErrorToggleName || "queryError");
         this.extensions.constructed(this, bindings);
         this.setup(bindings, crudService);
     }
@@ -120,8 +130,22 @@ export class CrudSearch extends ICrudQueryComponent {
         this.clearData({});
     }
 
-    public triggerSearch(): Promise<any> {
-        return this.crudService.getPage(this.queryManager.setupQuery());
+    public async triggerSearch(): Promise<any> {
+        this.form.clearError();
+        this.queryErrorToggle.off();
+        try {
+            return await this.crudService.getPage(this.queryManager.setupQuery());
+        }
+        catch (err) {
+            if (error.isFormErrors(err)) {
+                this.form.setError(err);
+                if (err.message) {
+                    this.queryErrorToggle.on();
+                    this.queryErrorView.setData(err.message);
+                }
+            }
+            throw err;
+        }
     }
 
     public clearData(clearData?: any) {

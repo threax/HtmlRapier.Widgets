@@ -1,12 +1,15 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "15.11.0",
+  "version": "15.12.0",
   "private": false,
   "dependencies": {
     "htmlrapier": ">=14.3.0",
     "htmlrapier.halcyon": ">=7.0.0"
   },
-  "scripts": {
-    "yarn-install": "yarn install --flat"
-  }
+  "files": [
+    "src/**/*",
+    "tsimport.json",
+    "artifacts.json",
+    "LICENSE"
+  ]
 }
