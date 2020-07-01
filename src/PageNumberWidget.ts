@@ -1,5 +1,5 @@
 ﻿import * as events from 'htmlrapier/src/eventdispatcher';
-import * as controller from "hr.controller";
+import * as controller from "htmlrapier/src/controller";
 
 /**
  * A toggle that is on, off or active.
