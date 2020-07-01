@@ -1,7 +1,7 @@
 import * as controller from 'hr.controller';
 import * as events from 'hr.eventdispatcher';
 import * as hal from 'hr.halcyon.EndpointClient';
-import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import { MainLoadErrorLifecycle } from './MainLoadErrorLifecycle';
 import * as form from 'hr.form';
 import { JsonSchema } from 'hr.schema';
 import * as error from 'hr.error';

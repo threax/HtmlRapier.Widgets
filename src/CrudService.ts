@@ -1,5 +1,5 @@
 import * as events from 'hr.eventdispatcher';
-import * as pageWidget from 'hr.widgets.PageNumberWidget';
+import * as pageWidget from './PageNumberWidget';
 
 export type ItemUpdatedCallback = (data: any) => Promise<any>;
 export type ItemEditorClosedCallback = () => void;

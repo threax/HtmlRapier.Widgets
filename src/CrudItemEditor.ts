@@ -1,7 +1,7 @@
 import * as controller from 'hr.controller';
 import * as form from 'hr.form';
-import { ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from 'hr.widgets.CrudService';
-import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import { ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from './CrudService';
+import { MainLoadErrorLifecycle } from './MainLoadErrorLifecycle';
 import * as error from 'hr.error';
 
 export enum CrudItemEditorType{

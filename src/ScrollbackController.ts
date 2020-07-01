@@ -1,5 +1,5 @@
 import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
+import { ICrudService } from './CrudService';
 import { Scope } from 'hr.di';
 
 export class ScrollbackController {

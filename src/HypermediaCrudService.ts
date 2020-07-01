@@ -1,7 +1,7 @@
-import * as crudPage from 'hr.widgets.CrudPage';
-import * as pageWidget from 'hr.widgets.PageNumberWidget';
+import * as crudPage from './CrudPage';
+import * as pageWidget from './PageNumberWidget';
 import * as di from 'hr.di';
-export { CrudSearch, CrudPageNumbers, CrudTableController, CrudItemEditorController, CrudItemEditorType, CrudSort, CrudPageView } from 'hr.widgets.CrudPage';
+export { CrudSearch, CrudPageNumbers, CrudTableController, CrudItemEditorController, CrudItemEditorType, CrudSort, CrudPageView } from './CrudPage';
 import * as ep from 'hr.externalpromise';
 import * as deeplink from 'hr.deeplink';
 import { ExternalPromise } from 'hr.externalpromise';

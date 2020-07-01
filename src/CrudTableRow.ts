@@ -1,7 +1,7 @@
 import * as controller from 'hr.controller';
-import { IConfirm, BrowserConfirm } from 'hr.widgets.confirm';
-import { IAlert, BrowserAlert } from 'hr.widgets.alert';
-import * as crudService from 'hr.widgets.CrudService';
+import { IConfirm, BrowserConfirm } from './confirm';
+import { IAlert, BrowserAlert } from './alert';
+import * as crudService from './CrudService';
 
 /**
  * This class allows extensions to be created for CrudTableRows, this is the reccomended way to add

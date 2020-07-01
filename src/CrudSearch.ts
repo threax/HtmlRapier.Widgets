@@ -1,8 +1,8 @@
-import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from 'hr.widgets.CrudQuery';
+import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from './CrudQuery';
 import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
+import { ICrudService } from './CrudService';
 import * as form from 'hr.form';
-import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import { MainLoadErrorLifecycle } from './MainLoadErrorLifecycle';
 import { serialize } from 'htmlrapier/src/formhelper';
 import * as error from 'hr.error';
 

@@ -1,9 +1,9 @@
 import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
-import { CrudQueryManager } from 'hr.widgets.CrudQuery';
-import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
+import { ICrudService } from './CrudService';
+import { CrudQueryManager } from './CrudQuery';
+import { CrudTableRowController } from './CrudTableRow';
 import * as view from 'hr.view';
-import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import { MainLoadErrorLifecycle } from './MainLoadErrorLifecycle';
 import * as components from 'hr.components';
 
 export class ListingDisplayOptions {

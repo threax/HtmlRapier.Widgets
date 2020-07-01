@@ -1,6 +1,6 @@
-import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from 'hr.widgets.CrudQuery';
+import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from './CrudQuery';
 import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
+import { ICrudService } from './CrudService';
 import * as toggles from 'hr.toggles';
 
 class ColumnOrderToggle extends toggles.TypedToggle {
