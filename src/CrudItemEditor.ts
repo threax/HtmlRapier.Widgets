@@ -1,8 +1,8 @@
-import * as controller from 'hr.controller';
-import * as form from 'hr.form';
+import * as controller from 'htmlrapier/src/controller';
+import * as form from 'htmlrapier/src/form';
 import { ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs } from './CrudService';
 import { MainLoadErrorLifecycle } from './MainLoadErrorLifecycle';
-import * as error from 'hr.error';
+import * as error from 'htmlrapier/src/error';
 
 export enum CrudItemEditorType{
     Add = 1,

@@ -1,4 +1,4 @@
-﻿import * as toggles from 'hr.toggles';
+﻿import * as toggles from 'htmlrapier/src/toggles';
 
 export class MainLoadErrorLifecycle {
     private mainToggle;

@@ -1,4 +1,4 @@
-import * as controller from 'hr.controller';
+import * as controller from 'htmlrapier/src/controller';
 import { IConfirm, BrowserConfirm } from './confirm';
 import { IAlert, BrowserAlert } from './alert';
 import * as crudService from './CrudService';

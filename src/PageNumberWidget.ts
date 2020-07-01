@@ -1,4 +1,4 @@
-﻿import * as events from 'hr.eventdispatcher';
+﻿import * as events from 'htmlrapier/src/eventdispatcher';
 import * as controller from "hr.controller";
 
 /**

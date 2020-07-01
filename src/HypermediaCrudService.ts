@@ -1,10 +1,10 @@
 import * as crudPage from './CrudPage';
 import * as pageWidget from './PageNumberWidget';
-import * as di from 'hr.di';
+import * as di from 'htmlrapier/src/di';
 export { CrudSearch, CrudPageNumbers, CrudTableController, CrudItemEditorController, CrudItemEditorType, CrudSort, CrudPageView } from './CrudPage';
-import * as ep from 'hr.externalpromise';
-import * as deeplink from 'hr.deeplink';
-import { ExternalPromise } from 'hr.externalpromise';
+import * as ep from 'htmlrapier/src/externalpromise';
+import * as deeplink from 'htmlrapier/src/deeplink';
+import { ExternalPromise } from 'htmlrapier/src/externalpromise';
 
 export interface HypermediaPageInjectorOptions {
     /**
@@ -16,7 +16,7 @@ export interface HypermediaPageInjectorOptions {
     usePageQueryForFirstLoad?: boolean;
 
     /**
-     * A unique name for the injector. If this is not provided it will be auto generated to 'hr.autonamed_hypermedia_injector_X'
+     * A unique name for the injector. If this is not provided it will be auto generated to 'htmlrapier/src/autonamed_hypermedia_injector_X'
      * where X is the index of how many injectors have been created so far. This is usually good enough and you won't need to provide
      * a value for this option.
      */

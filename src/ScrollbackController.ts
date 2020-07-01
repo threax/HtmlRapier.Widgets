@@ -1,6 +1,6 @@
-import * as controller from 'hr.controller';
+import * as controller from 'htmlrapier/src/controller';
 import { ICrudService } from './CrudService';
-import { Scope } from 'hr.di';
+import { Scope } from 'htmlrapier/src/di';
 
 export class ScrollbackController {
     public static get InjectorArgs(): controller.InjectableArgs {

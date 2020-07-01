@@ -1,4 +1,4 @@
-import * as controller from 'hr.controller';
+import * as controller from 'htmlrapier/src/controller';
 import * as hyperCrudPage from './HypermediaCrudService';
 import * as scrollback from './ScrollbackController';
 

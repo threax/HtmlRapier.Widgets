@@ -1,7 +1,7 @@
-import * as crudPage from 'hr.widgets.CrudPage';
-import * as hyperCrudPage from 'hr.widgets.HypermediaCrudService';
-import * as controller from 'hr.controller';
-import * as hyperCrud from 'hr.widgets.HypermediaCrudService';
+import * as crudPage from './CrudPage';
+import * as hyperCrudPage from './HypermediaCrudService';
+import * as controller from 'htmlrapier/src/controller';
+import * as hyperCrud from './HypermediaCrudService';
 
 export interface CrudResultHandler {
     setCurrent(result: hyperCrud.HypermediaCrudDataResult): void;

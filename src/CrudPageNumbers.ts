@@ -1,5 +1,5 @@
 import { CrudQueryManager, ICrudQueryComponent } from './CrudQuery';
-import * as controller from 'hr.controller';
+import * as controller from 'htmlrapier/src/controller';
 import { ICrudService } from './CrudService';
 import * as pageWidget from './PageNumberWidget';
 

@@ -1,4 +1,4 @@
-import * as controller from 'hr.controller';
+import * as controller from 'htmlrapier/src/controller';
 export { DataLoadingEventArgs, ICrudService, ItemEditorClosedCallback, ItemUpdatedCallback, ShowItemEditorEventArgs, CrudDataModifiedEventArgs } from './CrudService';
 import * as crudRow from './CrudTableRow';
 export { CrudTableRowController, CrudTableRowControllerExtensions } from './CrudTableRow';

@@ -1,8 +1,8 @@
-import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
-import { CrudQueryManager } from 'hr.widgets.CrudQuery';
-import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
-import * as view from 'hr.view';
+import * as controller from 'htmlrapier/src/controller';
+import { ICrudService } from './CrudService';
+import { CrudQueryManager } from './CrudQuery';
+import { CrudTableRowController } from './CrudTableRow';
+import * as view from 'htmlrapier/src/view';
 
 export class CrudPageViewOptions{
     viewName: string = "display";
