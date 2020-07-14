@@ -383,7 +383,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
 
     private async itemEditorClosed() {
         if (this.currentPage && this.allowCloseHistory) {
-            this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+            await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
         }
     }
 
@@ -399,7 +399,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (recordHistory) {
             var itemId = this.pageInjector.getItemId(item);
             if (itemId !== null) {
-                this.linkManager.pushState(this.pageInjector.uniqueName, "Edit/" + itemId, null);
+                await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, "Edit/" + itemId, null);
             }
         }
 
@@ -457,41 +457,39 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
 
     //Load a new page, you can call this multiple times before a result is returned, this
     //function will wait until the last requested set of data is loaded to send results out
-    public getPage(query: any): Promise<HypermediaCrudCollection> {
+    public async getPage(query: any): Promise<HypermediaCrudCollection> {
         var replacePageUrl = true;
         //No current page, use the url query instead of the one passed in
         if (this.pageInjector.usePageQueryForFirstLoad && this.initialLoad) {
-            var historyState = this.linkManager.getCurrentState(query);
+            var historyState = await this.linkManager.getCurrentStateAsync(query);
             if (historyState) {
                 query = historyState.query;
                 var itemId = this.getEditIdFromPath(historyState.inPagePath);
                 if (itemId !== null) {
                     replacePageUrl = false;
-                    var item = this.pageInjector.getById(itemId).then(r => {
-                        if (r !== null) {
-                            this.linkManager.replaceState(this.pageInjector.uniqueName, "Edit/" + itemId, null);
-                            this.beginEdit(r, false);
-                        }
-                    });
+                    var item = await this.pageInjector.getById(itemId);
+                    if (item !== null) {
+                        await this.linkManager.replaceStateAsync(this.pageInjector.uniqueName, "Edit/" + itemId, null);
+                        this.beginEdit(item, false);
+                    };
                 }
             }
         }
 
-        //Setup the data load promise
-        var loadingPromise = this.getPageAsync(query, !this.initialLoad);
+        const loadingPromise = this.doLoadingThing(query, replacePageUrl);
+        return this.handlePageLoad(loadingPromise, query);
+    }
+
+    private async doLoadingThing(query: string, replacePageUrl: boolean) {
+        let r = await this.getPageAsync(query, !this.initialLoad);
         if (this.initialLoad) {
             this.initialLoad = false;
-            loadingPromise = loadingPromise
-                .then(r => {
-                    if (replacePageUrl) {
-                        this.linkManager.replaceState(this.pageInjector.uniqueName, null, this.currentPage.data);
-                    }
-                    this.initialPageLoadPromise.resolve(r);
-                    return r;
-                });
+            if (replacePageUrl) {
+                await this.linkManager.replaceStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
+            }
+            this.initialPageLoadPromise.resolve(r);
         }
-
-        return this.handlePageLoad(loadingPromise, query);
+        return r;
     }
 
     //This function handles only returning the last set of requested data.
@@ -534,7 +532,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (await this.pageInjector.canList()) {
             this.currentPage = await this.pageInjector.list(query);
             if (recordHistory) {
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
             }
             return this.currentPage;
         }
@@ -551,7 +549,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canFirst()) {
                 this.currentPage = await this.currentPage.first();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -571,7 +569,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canLast()) {
                 this.currentPage = await this.currentPage.last();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -591,7 +589,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canNext()) {
                 this.currentPage = await this.currentPage.next();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -611,7 +609,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canPrevious()) {
                 this.currentPage = await this.currentPage.previous();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
@@ -631,7 +629,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canRefresh()) {
                 this.currentPage = await this.currentPage.refresh();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                await this.linkManager.pushStateAsync(this.pageInjector.uniqueName, null, this.currentPage.data);
                 return this.currentPage;
             }
             else {
