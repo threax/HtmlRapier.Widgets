@@ -653,7 +653,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         return new pageWidget.HypermediaPageState(list);
     }
 
-    public async onPopState(args: deeplink.DeepLinkArgs) {
+    public async onPopState(args: deeplink.IDeepLinkArgs) {
         var itemId = this.getEditIdFromPath(args.inPagePath);
         if (itemId !== null) {
             var item = await this.pageInjector.getById(itemId);
