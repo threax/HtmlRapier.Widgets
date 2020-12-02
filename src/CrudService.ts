@@ -91,35 +91,35 @@ export abstract class ICrudService {
      * This function will return the schema for editing an item. This function should try to return update
      * schema first, and failing that return the add schema.
      */
-    public abstract async getItemSchema(): Promise<any>;
+    public abstract getItemSchema(): Promise<any>;
 
     /**
      * Get the schema for listing objects in the table. This helps format items on the table according to how
      * the service dictates they should be formatted.
      */
-    public abstract async getListingSchema(): Promise<any>;
+    public abstract getListingSchema(): Promise<any>;
 
     /**
      * Get the schema to use when searching for items in this service.
      */
-    public abstract async getSearchSchema(): Promise<any>;
+    public abstract getSearchSchema(): Promise<any>;
 
     /**
      * Start trying to add a new item to the service.
      * @param item The default settings for the item
      */
-    public abstract async add(item?: any);
+    public abstract add(item?: any);
 
     /**
      * Determine if the crud service can add items.
      */
-    public abstract async canAdd(): Promise<boolean>;
+    public abstract canAdd(): Promise<boolean>;
 
     /**
      * Start trying to edit an item in the service
      * @param item The item to edit
      */
-    public abstract async edit(item: any);
+    public abstract edit(item: any);
 
     /**
      * Determine if an item can be edited.
@@ -137,7 +137,7 @@ export abstract class ICrudService {
      * Delete item
      * @param item The item to delete
      */
-    public abstract async del(item: any): Promise<any>;
+    public abstract del(item: any): Promise<any>;
 
     /**
      * Determine if an item can be deleted.
