@@ -1,10 +1,10 @@
-import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from 'hr.widgets.CrudQuery';
-import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
-import * as form from 'hr.form';
-import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
+import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from './CrudQuery';
+import * as controller from 'htmlrapier/src/controller';
+import { ICrudService } from './CrudService';
+import * as form from 'htmlrapier/src/form';
+import { MainLoadErrorLifecycle } from './MainLoadErrorLifecycle';
 import { serialize } from 'htmlrapier/src/formhelper';
-import * as error from 'hr.error';
+import * as error from 'htmlrapier/src/error';
 
 export abstract class ICrudSearchOptions {
     public allowAutoSearch?: boolean;

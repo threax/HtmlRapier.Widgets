@@ -1,7 +1,7 @@
-import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from 'hr.widgets.CrudQuery';
-import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
-import * as toggles from 'hr.toggles';
+import { CrudQueryManager, ICrudQueryComponent, QueryEventArgs } from './CrudQuery';
+import * as controller from 'htmlrapier/src/controller';
+import { ICrudService } from './CrudService';
+import * as toggles from 'htmlrapier/src/toggles';
 
 class ColumnOrderToggle extends toggles.TypedToggle {
     public getPossibleStates(): string[] {

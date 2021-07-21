@@ -1,5 +1,5 @@
-import * as events from 'hr.eventdispatcher';
-import * as controller from 'hr.controller';
+import * as events from 'htmlrapier/src/eventdispatcher';
+import * as controller from 'htmlrapier/src/controller';
 
 export class QueryEventArgs {
     private _query: any;

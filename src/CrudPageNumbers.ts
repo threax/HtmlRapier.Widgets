@@ -1,7 +1,7 @@
-import { CrudQueryManager, ICrudQueryComponent } from 'hr.widgets.CrudQuery';
-import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
-import * as pageWidget from 'hr.widgets.PageNumberWidget';
+import { CrudQueryManager, ICrudQueryComponent } from './CrudQuery';
+import * as controller from 'htmlrapier/src/controller';
+import { ICrudService } from './CrudService';
+import * as pageWidget from './PageNumberWidget';
 
 interface PageNumberQuery {
     offset: number;

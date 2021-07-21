@@ -1,10 +1,10 @@
-import * as controller from 'hr.controller';
-import { ICrudService } from 'hr.widgets.CrudService';
-import { CrudQueryManager } from 'hr.widgets.CrudQuery';
-import { CrudTableRowController } from 'hr.widgets.CrudTableRow';
-import * as view from 'hr.view';
-import { MainLoadErrorLifecycle } from 'hr.widgets.MainLoadErrorLifecycle';
-import * as components from 'hr.components';
+import * as controller from 'htmlrapier/src/controller';
+import { ICrudService } from './CrudService';
+import { CrudQueryManager } from './CrudQuery';
+import { CrudTableRowController } from './CrudTableRow';
+import * as view from 'htmlrapier/src/view';
+import { MainLoadErrorLifecycle } from './MainLoadErrorLifecycle';
+import * as components from 'htmlrapier/src/components';
 
 export class ListingDisplayOptions {
     listingModelName: string = "listing";

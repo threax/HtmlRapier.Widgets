@@ -1,6 +1,6 @@
-import * as controller from 'hr.controller';
-import * as hyperCrudPage from 'hr.widgets.HypermediaCrudService';
-import * as scrollback from 'hr.widgets.ScrollbackController';
+import * as controller from 'htmlrapier/src/controller';
+import * as hyperCrudPage from './HypermediaCrudService';
+import * as scrollback from './ScrollbackController';
 
 export type HypermediaPageInjectorConstructor = Function & {
     InjectorArgs: controller.InjectableArgs;
