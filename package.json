@@ -1,10 +1,10 @@
 {
   "name": "htmlrapier.widgets",
-  "version": "15.12.1",
+  "version": "16.0.0-pre.0",
   "private": false,
   "dependencies": {
-    "htmlrapier": ">=14.3.0",
-    "htmlrapier.halcyon": ">=7.0.0"
+    "htmlrapier": ">=25.0.0-pre.0",
+    "htmlrapier.halcyon": ">=10.0.0-pre.0"
   },
   "files": [
     "src/**/*",
