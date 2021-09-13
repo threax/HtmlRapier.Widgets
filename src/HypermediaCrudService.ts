@@ -123,6 +123,15 @@ export abstract class HypermediaPageInjector {
     public async getSearchSchema() {
         return null;
     }
+
+    /**
+     * Modify the page data for a deep link query as needed. Note that the page data is not copied 
+     * before this function is called. If a copy is needed to modify please create it in your implementation.
+     * @param pageData The currentPage.data for the current page.
+     */
+    public modifyPageQueryData(pageData: any): any {
+        return pageData;
+    }
 }
 
 export abstract class HypermediaChildPageInjector<T extends HypermediaCrudDataResult> extends HypermediaPageInjector {
@@ -381,9 +390,13 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         }
     }
 
+    private getCurrentPageQueryData(): any {
+        return this.pageInjector.modifyPageQueryData(this.currentPage.data);
+    }
+
     private async itemEditorClosed() {
         if (this.currentPage && this.allowCloseHistory) {
-            this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+            this.linkManager.pushState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
         }
     }
 
@@ -484,7 +497,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
             loadingPromise = loadingPromise
                 .then(r => {
                     if (replacePageUrl) {
-                        this.linkManager.replaceState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                        this.linkManager.replaceState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
                     }
                     this.initialPageLoadPromise.resolve(r);
                     return r;
@@ -534,7 +547,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (await this.pageInjector.canList()) {
             this.currentPage = await this.pageInjector.list(query);
             if (recordHistory) {
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
             }
             return this.currentPage;
         }
@@ -551,7 +564,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canFirst()) {
                 this.currentPage = await this.currentPage.first();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
                 return this.currentPage;
             }
             else {
@@ -571,7 +584,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canLast()) {
                 this.currentPage = await this.currentPage.last();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
                 return this.currentPage;
             }
             else {
@@ -591,7 +604,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canNext()) {
                 this.currentPage = await this.currentPage.next();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
                 return this.currentPage;
             }
             else {
@@ -611,7 +624,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canPrevious()) {
                 this.currentPage = await this.currentPage.previous();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
                 return this.currentPage;
             }
             else {
@@ -631,7 +644,7 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         if (this.currentPage) {
             if (this.currentPage.canRefresh()) {
                 this.currentPage = await this.currentPage.refresh();
-                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.currentPage.data);
+                this.linkManager.pushState(this.pageInjector.uniqueName, null, this.getCurrentPageQueryData());
                 return this.currentPage;
             }
             else {
