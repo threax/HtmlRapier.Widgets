@@ -325,6 +325,14 @@ export class HypermediaCrudService extends crudPage.ICrudService implements deep
         }
 
         //Finally return the schema to view the item with a get
+        return await this.getViewSchema();
+    }
+
+    public async getViewSchema() {
+        //This ensures that we don't return an item schema until at least one page is loaded.
+        await this.initialPageLoadPromise.Promise;
+
+        //Return the schema to view the item with a get
         if (IsGetDocs(this.currentPage)) {
             if (this.currentPage.hasGetDocs()) {
                 var docs = await this.currentPage.getGetDocs();

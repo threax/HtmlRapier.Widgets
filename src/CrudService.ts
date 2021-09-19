@@ -94,6 +94,11 @@ export abstract class ICrudService {
     public abstract getItemSchema(): Promise<any>;
 
     /**
+     * This function will return a schema for viewing items.
+     */
+    public abstract getViewSchema() : Promise<any>;
+
+    /**
      * Get the schema for listing objects in the table. This helps format items on the table according to how
      * the service dictates they should be formatted.
      */
