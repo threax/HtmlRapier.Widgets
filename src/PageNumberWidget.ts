@@ -145,7 +145,7 @@ export class PageNumberWidget {
     private lastToggle: controller.OnOffToggle;
 
     private pageNumberToggles: OnOffActiveToggle[] = [];
-    private pageNumberModels: controller.Model<PageNumberModel>[] = [];
+    private pageNumberModels: controller.IView<PageNumberModel>[] = [];
     private halfPageButtonTotal: number;
     private startIndex: number;
 
@@ -168,7 +168,7 @@ export class PageNumberWidget {
             if (lookup) {
                 this.pageNumberToggles.push(pageToggle);
                 parentController[options.loadPageFunctionBaseName + i] = this.pageEventClojureCreator(i);
-                this.pageNumberModels.push(bindings.getModel<PageNumberModel>(options.modelBaseName + i));
+                this.pageNumberModels.push(bindings.getView<PageNumberModel>(options.modelBaseName + i));
             }
             ++i;
         }

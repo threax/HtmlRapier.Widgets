@@ -30,8 +30,8 @@ export class CrudPageNumbers extends ICrudQueryComponent {
     private queryManager: CrudQueryManager;
     private pageNumbers: pageWidget.PageNumberWidget;
     private crudService: ICrudService;
-    private itemCountsModel: controller.Model<PageNumberItemCount>;
-    private totalPerPageModel: controller.Model<ItemsPerPage>;
+    private itemCountsModel: controller.IView<PageNumberItemCount>;
+    private totalPerPageModel: controller.IForm<ItemsPerPage>;
 
     constructor(bindings: controller.BindingCollection, crudService: ICrudService, queryManager: CrudQueryManager) {
         super();
@@ -47,8 +47,8 @@ export class CrudPageNumbers extends ICrudQueryComponent {
         this.pageNumbers.loadLastEvent.add(arg => this.crudService.lastPage());
         var config: HtmlConfig = bindings.getConfig();
 
-        this.itemCountsModel = bindings.getModel<PageNumberItemCount>("totals");
-        this.totalPerPageModel = bindings.getModel<ItemsPerPage>("itemsPerPage");
+        this.itemCountsModel = bindings.getView<PageNumberItemCount>("totals");
+        this.totalPerPageModel = bindings.getForm<ItemsPerPage>("itemsPerPage");
         this.totalPerPageModel.setData({
             itemsPerPage: config.startitemsperpage ? config.startitemsperpage : 10
         });
